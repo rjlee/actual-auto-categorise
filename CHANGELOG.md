@@ -1,3 +1,11 @@
+# 1.0.0 (2025-06-21)
+
+
+### Features
+
+* add initial configuration files for Docker and environment setup ([56f93fe](https://github.com/rjlee/actual-auto-categorise/commit/56f93fe71a4f39b87519cbbe2caf018cab143dcd))
+* initial commit ([c4d9082](https://github.com/rjlee/actual-auto-categorise/commit/c4d9082e703ee57b2e51c1af04d96ca553df1656))
+
 ## [1.18.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.2...v1.18.3) (2025-06-21)
 
 

@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.1.0...v1.1.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* update environment variable names for budget data directory consistency ([ef859fb](https://github.com/rjlee/actual-auto-categorise/commit/ef859fb593e1a2cf3eaf1a4430cba8e08fbb4d55))
+
 # [1.1.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.4...v1.1.0) (2025-06-21)
 
 

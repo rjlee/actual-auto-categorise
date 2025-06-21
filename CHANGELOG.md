@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.3...v1.0.4) (2025-06-21)
+
+
+### Bug Fixes
+
+* enhance README with additional Docker setup instructions and security note ([d6b0041](https://github.com/rjlee/actual-auto-categorise/commit/d6b0041f0abebce5b5c8cbea76d64c5208a4183b))
+
 ## [1.0.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.2...v1.0.3) (2025-06-21)
 
 

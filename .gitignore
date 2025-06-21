@@ -1,0 +1,25 @@
+node_modules/
+actual-data/
+data/
+resources/
+.env
+budget/
+
+# macOS file system
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Test coverage directory
+coverage/
+
+# Local environment overrides
+.env.local
+.env.*.local

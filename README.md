@@ -15,6 +15,9 @@ Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL
 # Build the Docker image
 docker build -t actual-auto-categorise .
 
+# Prepare required host dirs for model & budget data
+mkdir -p data budget
+
 # Run using your .env file
 docker run --rm --env-file .env actual-auto-categorise
 ```
@@ -30,6 +33,8 @@ If you have Docker Compose installed:
 ```bash
 docker-compose up -d
 ```
+
+Then open your browser to `http://<HOST>:5007`, click **Train** to train the model, then **Classify** to categorize your transactions.
 
 ## Setup
 
@@ -50,6 +55,7 @@ ACTUAL_BUDGET_ID=your_budget_id
 # Optional: path to store local budget data (default: ./budget)
 ACTUAL_DATA_DIR=./budget
 ```
+> **Security note:** If connecting to a self-signed Actual Budget instance, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in your environment. This disables certificate verification and makes TLS/HTTPS requests insecure.
 
 You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `config.yml`) in the project root to set default CLI options:
 

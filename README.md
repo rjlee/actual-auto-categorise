@@ -4,7 +4,7 @@ This application trains a machine learning model on your categorized transaction
 
 ## Requirements
 
-- Node.js v20.x (LTS; required for TensorFlow.js compatibility)
+- Node.js ≥20 <23 (required for TensorFlow.js compatibility)
 - An instance of Actual Budget server running and accessible.
 
 ## Quick start with Docker
@@ -32,6 +32,8 @@ docker-compose up -d
 ```
 
 ## Setup
+
+> **Note:** Ensure you are running on Node.js ≥20 <23. The Node ≥20 <23 engine range is required for ABI compatibility with TensorFlow.js native bindings and WASM transformer support.
 
 Install dependencies:
 
@@ -207,7 +209,7 @@ The daemon also prevents overlapping classification runs: if a previous classifi
 In addition, the daemon schedules a weekly training run (default: every Monday at 06:30 UTC):
 
 ```bash
-# run once a week at Monday 06:30 UTC (default)
+# run once a week on Monday at 06:30 UTC (default)
 export TRAIN_CRON="30 6 * * 1"
 export TRAIN_CRON_TIMEZONE="UTC"
 ```

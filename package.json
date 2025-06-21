@@ -12,7 +12,7 @@
     "test": "jest --runInBand"
   },
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=20 <23"
   },
   "dependencies": {
     "@actual-app/api": "^25.6.1",

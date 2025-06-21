@@ -4,6 +4,7 @@ This application trains a machine learning model on your categorized transaction
 
 ## Requirements
 
+- Node.js v20.x (LTS; required for TensorFlow.js compatibility)
 - An instance of Actual Budget server running and accessible.
 
 ## Quick start with Docker
@@ -147,7 +148,7 @@ The TensorFlow.js classifier uses a saved Layers model and the Universal Sentenc
 | GPU support           | No GPU acceleration                      | Optional GPU with `tfjs-node-gpu`              |
 | Dependencies          | Lightweight (JS only)                    | Heavy (tfjs-core, tfjs-node, USE)               |
 | Model size            | Small (meta+bin ≈ few MB)                | Moderate (model.json + shards ≈ tens of MB)     |
-| Node.js compatibility | Node.js ≥22                              | Node.js 22 (ABI issues with ≥23)                |
+| Node.js compatibility | Node.js ≥20                              | Node.js 20 (ABI issues with ≥23)                |
 | Flexibility           | Fixed kNN algorithm                      | Configurable neural network topology           |
 | Accuracy               | Good baseline accuracy through nearest neighbors | Potentially higher with neural network tuning    |
 | Accuracy tuning        | Limited to k and embeddings              | Tunable network architecture and parameters    |

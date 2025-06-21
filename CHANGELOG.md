@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.1...v1.0.2) (2025-06-21)
+
+
+### Bug Fixes
+
+* update Node.js version requirements in package.json and README, adjust .nvmrc, and refactor Dockerfile stages ([c1bf854](https://github.com/rjlee/actual-auto-categorise/commit/c1bf85459623a7adea6b4dd0a7c6502590048ae1))
+
 ## [1.0.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.0...v1.0.1) (2025-06-21)
 
 

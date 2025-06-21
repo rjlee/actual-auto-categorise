@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.0...v1.0.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* update Docker metadata action to v4 and enhance README with Docker usage instructions ([90700b5](https://github.com/rjlee/actual-auto-categorise/commit/90700b5a447e5ad89a14d047c962d0e54a90b9df))
+
 # 1.0.0 (2025-06-21)
 
 

@@ -58,11 +58,18 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
     const payees = await getPayees();
     const payeeMap = Object.fromEntries(payees.map(p => [p.id, p.name]));
     let toClassify = rawTxns.map(tx => ({
-      id:          tx.id,
-      description: payeeMap[tx.payee] || tx.description || ''
+      id: tx.id,
+      // Combine payee name, memo/notes, and transaction amount
+      description: [
+        payeeMap[tx.payee],
+        tx.notes,
+        tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
+      ]
+        .filter(s => typeof s === 'string' && s.trim())
+        .join(' – '),
     }));
-    // Skip records with empty description
-    toClassify = toClassify.filter((row) => row.description.trim() !== '');
+    // Skip records with empty combined description
+    toClassify = toClassify.filter(row => row.description.trim() !== '');
     if (verbose) {
       log.debug({ toClassify }, 'Prepared records to classify');
     }

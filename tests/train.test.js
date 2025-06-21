@@ -31,7 +31,10 @@ describe('runTraining pipeline', () => {
     // Stub API methods
     getAccounts.mockResolvedValue([{ id: 'acct1' }]);
     getTransactions.mockResolvedValue([
-      { id: 'tx1', reconciled: true, category: 'cat1', payee: 'p1', description: 'desc' },
+      {
+        id: 'tx1', reconciled: true, category: 'cat1', payee: 'p1',
+        amount: 123, description: 'desc'
+      },
     ]);
     getPayees.mockResolvedValue([{ id: 'p1', name: 'Payee 1' }]);
     getCategories.mockResolvedValue([{ id: 'cat1', name: 'Category 1' }]);
@@ -44,7 +47,7 @@ describe('runTraining pipeline', () => {
     expect(fs.existsSync(txFile)).toBe(true);
     const txJson = JSON.parse(fs.readFileSync(txFile, 'utf8'));
     expect(txJson).toEqual([
-      { id: 'tx1', description: 'Payee 1', category: 'Category 1' },
+      { id: 'tx1', description: 'Payee 1 – 1.23', category: 'Category 1' },
     ]);
     // Model files
     const modelDir = path.join(dataDir, 'tx-classifier-knn');

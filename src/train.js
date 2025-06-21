@@ -58,14 +58,27 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
       .filter((tx) => catMap[tx.category])
       .map((tx) => ({
         id: tx.id,
-        description: payeeMap[tx.payee] || tx.description || '',
+        description: [
+          payeeMap[tx.payee],
+          tx.notes,
+          tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
+        ]
+          .filter((s) => typeof s === 'string' && s.trim())
+          .join(' – '),
         category: catMap[tx.category],
-      }));
-    // Skip records with empty description
-    trainingData = trainingData.filter((row) => row.description.trim() !== '');
+      }))
+      .filter((row) => row.description.trim() !== '');
     const modelDir = path.join(outDir, 'tx-classifier-tf');
     await trainTF(trainingData, modelDir);
     await closeBudget();
+    // Clean up training cache directory
+    if (cacheDir && fs.existsSync(cacheDir)) {
+      for (const item of fs.readdirSync(cacheDir)) {
+        try {
+          fs.rmSync(path.join(cacheDir, item), { recursive: true, force: true });
+        } catch (_) {}
+      }
+    }
     return;
   }
   try {
@@ -90,7 +103,13 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
     let trainingData = rawTxns
       .map((tx) => ({
         id: tx.id,
-        description: payeeMap[tx.payee] || tx.description || '',
+        description: [
+          payeeMap[tx.payee],
+          tx.notes,
+          tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
+        ]
+          .filter((s) => typeof s === 'string' && s.trim())
+          .join(' – '),
         category: catMap[tx.category],
       }))
       .filter((row) => row.description.trim() !== '');

@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.2...v1.0.3) (2025-06-21)
+
+
+### Bug Fixes
+
+* update Node.js version requirement in README for clarity and consistency ([10d60be](https://github.com/rjlee/actual-auto-categorise/commit/10d60becd49c028744ec0156a7c4e2e6790c2705))
+
 ## [1.0.2](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.1...v1.0.2) (2025-06-21)
 
 

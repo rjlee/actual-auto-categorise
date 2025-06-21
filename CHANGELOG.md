@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.4...v1.1.0) (2025-06-21)
+
+
+### Features
+
+* add DISABLE_CRON_SCHEDULING option to control cron job execution and update related documentation ([33b1ac6](https://github.com/rjlee/actual-auto-categorise/commit/33b1ac691808ba9b1246f646dcd0b5880b4aaec1))
+
 ## [1.0.4](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.3...v1.0.4) (2025-06-21)
 
 

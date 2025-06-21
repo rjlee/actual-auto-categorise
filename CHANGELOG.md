@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.1.1...v1.2.0) (2025-06-21)
+
+
+### Features
+
+* enhance transaction description formatting in classification and training processes ([3ab2074](https://github.com/rjlee/actual-auto-categorise/commit/3ab2074810b29d81e96cca0b0548939480509aef))
+
 ## [1.1.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.1.0...v1.1.1) (2025-06-21)
 
 

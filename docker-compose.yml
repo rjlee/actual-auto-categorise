@@ -1,0 +1,23 @@
+services:
+  classifier:
+    image: ghcr.io/rjlee/actual-auto-categorise:latest
+    container_name: actual-classifier
+    env_file:
+      - .env
+    # Expose the web UI port (default HTTP_PORT or 3000)
+    ports:
+      - "${HTTP_PORT:-3000}:${HTTP_PORT:-3000}"
+    restart: unless-stopped
+    volumes:
+      # Persist model and budget data (host directory bind mounts)
+      - type: bind
+        source: ./data
+        target: /app/data
+      - type: bind
+        source: ./budget
+        target: /app/budget
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'

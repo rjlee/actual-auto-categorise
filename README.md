@@ -4,8 +4,31 @@ This application trains a machine learning model on your categorized transaction
 
 ## Requirements
 
-- Node.js v22.x (LTS; required for TensorFlow.js compatibility)
 - An instance of Actual Budget server running and accessible.
+
+## Quick start with Docker
+
+Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL, ACTUAL_PASSWORD, ACTUAL_BUDGET_ID).
+
+```bash
+# Build the Docker image
+docker build -t actual-auto-categorise .
+
+# Run using your .env file
+docker run --rm --env-file .env actual-auto-categorise
+```
+
+You can also run one-off commands. For example, to classify only:
+
+```bash
+docker run --rm --env-file .env actual-auto-categorise npm start -- --mode classify
+```
+
+If you have Docker Compose installed:
+
+```bash
+docker-compose up -d
+```
 
 ## Setup
 
@@ -221,7 +244,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 |:--------------------------|:-----------------------------------------------------------------|:-------------|
 | `ACTUAL_SERVER_URL`       | URL of the Actual Budget server                                   | —            |
 | `ACTUAL_PASSWORD`         | Password for Actual Budget API                                    | —            |
-| `ACTUAL_BUDGET_ID`        | Your Actual Budget ID                                              | —            |
+| `ACTUAL_BUDGET_ID`        | The Sync ID specified in Actual Budget Advanced Settings          | —            |
 | `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)           | —            |
 | `BUDGET_CACHE_DIR`        | Base directory for Actual Budget download cache (`train/`, `classify/`) | `./budget` |
 | `ENABLE_NODE_VERSION_SHIM`| Shim for Node>=20 guard in `@actual-app/api` (daemon only)        | `false`      |

@@ -53,7 +53,7 @@ ACTUAL_SERVER_URL=http://localhost:5006
 ACTUAL_PASSWORD=your_actual_password
 ACTUAL_BUDGET_ID=your_budget_id
 # Optional: path to store local budget data (default: ./budget)
-ACTUAL_DATA_DIR=./budget
+BUDGET_CACHE_DIR=./budget
 ```
 > **Security note:** If connecting to a self-signed Actual Budget instance, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in your environment. This disables certificate verification and makes TLS/HTTPS requests insecure.
 
@@ -79,8 +79,6 @@ CLASSIFIER_TYPE: ml
 
 A sample YAML config file is provided in `config.example.yaml`. Copy it to `config.yaml` or `config.yml` in the project root and adjust as needed.
 
-This setting controls where the scripts will download and cache your Actual Budget files — one subdirectory per mode (`train/` and `classify/`).
-
 See `.env.example` for all supported environment variables and defaults.
 
 ## Training
@@ -96,7 +94,7 @@ npm start -- --mode train
 CLASSIFIER_TYPE=tf npm start -- --mode train
 ```
 
-The training run downloads a copy of your budget into `<ACTUAL_DATA_DIR>/train` (e.g. `./budget/train`).
+The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>/train` (e.g. `./budget/train`).
 On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
 
 This will generate training data and save the model to `data/tx-classifier-knn`.
@@ -112,7 +110,7 @@ Retrieve new (unreconciled) transactions, classify them using the trained model,
 npm start -- --mode classify [--dry-run] [--verbose]
 ```
 
-The classification run downloads a copy of your budget into `<ACTUAL_DATA_DIR>/classify` (e.g. `./budget/classify`).
+The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>/classify` (e.g. `./budget/classify`).
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.

@@ -61,7 +61,7 @@ You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `c
 
 ```yaml
 # config.yaml example
-# Base directory for budget data (train/ and classify/ subdirs created here)
+# Base directory for budget data (train and classify subdirectories created here)
 dataDir: "./budget"
 # Classification schedule (once an hour on the hour)
 CLASSIFY_CRON: "0 * * * *"
@@ -69,9 +69,15 @@ CLASSIFY_CRON_TIMEZONE: UTC
 # Training schedule (once a week Monday at 06:30 UTC)
 TRAIN_CRON: "30 6 * * 1"
 TRAIN_CRON_TIMEZONE: UTC
+# Disable cron scheduling (daemon mode only; default: false)
+DISABLE_CRON_SCHEDULING: false
+# Logging level (info, debug, error)
 LOG_LEVEL: info
+# Classifier to use: 'ml' for Embed+KNN or 'tf' for TensorFlow.js (default: ml)
 CLASSIFIER_TYPE: ml
 ```
+
+A sample YAML config file is provided in `config.example.yaml`. Copy it to `config.yaml` or `config.yml` in the project root and adjust as needed.
 
 This setting controls where the scripts will download and cache your Actual Budget files — one subdirectory per mode (`train/` and `classify/`).
 
@@ -262,6 +268,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `CLASSIFY_CRON_TIMEZONE`  | Timezone for classification cron                                   | `UTC`        |
 | `TRAIN_CRON`              | Cron schedule for training daemon                                 | `30 6 * * 1` |
 | `TRAIN_CRON_TIMEZONE`     | Timezone for training cron                                        | `UTC`        |
+| `DISABLE_CRON_SCHEDULING` | Disable cron scheduling (daemon mode only)                         | `false`      |
 | `LOG_LEVEL`               | Logging level (`info`, `debug`, etc.)                              | `info`       |
 | `CLASSIFIER_TYPE`         | Classifier backend to use (`ml` or `tf`)                           | `ml`         |
 | `HTTP_PORT`               | Port for web UI server (daemon mode only)                         | `3000`       |

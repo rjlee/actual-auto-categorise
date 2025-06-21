@@ -25,7 +25,8 @@ const { scheduleClassification, scheduleTraining } = require('../src/daemon');
 describe('scheduleClassification()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default cron.validate to true
+    // Ensure disable flag is cleared and default cron.validate to true
+    delete process.env.DISABLE_CRON_SCHEDULING;
     cron.validate.mockReturnValue(true);
   });
 
@@ -62,11 +63,23 @@ describe('scheduleClassification()', () => {
       'Skipping scheduled classification run: previous run still in progress'
     );
   });
+  test('skips scheduling when DISABLE_CRON_SCHEDULING is true', () => {
+    process.env.DISABLE_CRON_SCHEDULING = 'true';
+    scheduleClassification(false);
+    expect(cron.validate).not.toHaveBeenCalled();
+    expect(cron.schedule).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(
+      { job: 'classification' },
+      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING'
+    );
+  });
 });
 
 describe('scheduleTraining()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Ensure disable flag is cleared and default cron.validate to true
+    delete process.env.DISABLE_CRON_SCHEDULING;
     cron.validate.mockReturnValue(true);
   });
 
@@ -100,6 +113,16 @@ describe('scheduleTraining()', () => {
     scheduleCb();
     expect(logger.warn).toHaveBeenCalledWith(expect.any(Object),
       'Skipping scheduled training: previous run still in progress'
+    );
+  });
+  test('skips scheduling when DISABLE_CRON_SCHEDULING is true', () => {
+    process.env.DISABLE_CRON_SCHEDULING = 'true';
+    scheduleTraining(false);
+    expect(cron.validate).not.toHaveBeenCalled();
+    expect(cron.schedule).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(
+      { job: 'training' },
+      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING'
     );
   });
 });

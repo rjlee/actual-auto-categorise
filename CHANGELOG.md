@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.2.0...v1.2.1) (2025-06-22)
+
+
+### Bug Fixes
+
+* ensure budget cache directory is created if it doesn't exist ([4432475](https://github.com/rjlee/actual-auto-categorise/commit/4432475da5eea54d7d5e26450f62ee4e97c1068c))
+
 # [1.2.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.1.1...v1.2.0) (2025-06-21)
 
 

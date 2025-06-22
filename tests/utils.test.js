@@ -12,15 +12,17 @@ jest.mock('@actual-app/api', () => ({
 const api = require('@actual-app/api');
 
 const { openBudget, closeBudget } = require('../src/utils');
+const logger = require('../src/logger');
 
 describe('openBudget utility', () => {
   const envBackup = { ...process.env };
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...envBackup };
-    // Suppress expected console output during openBudget tests
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    process.env.DISABLE_IMPORT_BACKUPS = 'false';
+    // Suppress expected logger output during openBudget tests
+    jest.spyOn(logger, 'warn').mockImplementation(() => {});
+    jest.spyOn(logger, 'info').mockImplementation(() => {});
   });
   afterAll(() => {
     process.env = envBackup;
@@ -61,6 +63,22 @@ describe('openBudget utility', () => {
     expect(api.runImport).toHaveBeenCalled();
     // downloadBudget is invoked via runImport callback on success
     expect(api.downloadBudget).toHaveBeenCalledTimes(1);
+  });
+
+  test('skips import backup when DISABLE_IMPORT_BACKUPS is true', async () => {
+    process.env.ACTUAL_SERVER_URL = 'u';
+    process.env.ACTUAL_PASSWORD = 'p';
+    process.env.ACTUAL_BUDGET_ID = 'b';
+    process.env.DISABLE_IMPORT_BACKUPS = 'true';
+    api.init.mockResolvedValue();
+    api.runImport.mockResolvedValue();
+    api.downloadBudget.mockResolvedValue();
+    const info = jest.spyOn(logger, 'info').mockImplementation(() => {});
+    await expect(openBudget()).resolves.toBeUndefined();
+    expect(api.init).toHaveBeenCalled();
+    expect(api.runImport).not.toHaveBeenCalled();
+    expect(api.downloadBudget).toHaveBeenCalled();
+    expect(info).toHaveBeenCalledWith('Skipping import backup (DISABLE_IMPORT_BACKUPS=true)');
   });
 });
 

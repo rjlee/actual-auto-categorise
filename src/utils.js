@@ -23,16 +23,21 @@ const Utils = {
     const budgetPassword = process.env.ACTUAL_BUDGET_ENCRYPTION_PASSWORD;
     const dlOpts = {};
     if (budgetPassword) dlOpts.password = budgetPassword;
-    try {
-      await api.runImport('open-budget', async () => {
-        await api.downloadBudget(budgetId, dlOpts);
-      });
-    } catch (err) {
-      logger.warn(
-        'Warning: runImport failed, falling back to direct downloadBudget:',
-        err.message
-      );
+    if (process.env.DISABLE_IMPORT_BACKUPS !== 'false') {
+      logger.info('Skipping import backup (DISABLE_IMPORT_BACKUPS=true)');
       await api.downloadBudget(budgetId, dlOpts);
+    } else {
+      try {
+        await api.runImport('open-budget', async () => {
+          await api.downloadBudget(budgetId, dlOpts);
+        });
+      } catch (err) {
+        logger.warn(
+          'Warning: runImport failed, falling back to direct downloadBudget:',
+          err.message
+        );
+        await api.downloadBudget(budgetId, dlOpts);
+      }
     }
     logger.info('Budget downloaded');
   },

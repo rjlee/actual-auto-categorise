@@ -3,6 +3,7 @@ const path = require('path');
 // Brute-force Embed+KNN classification without external kd-tree
 // Dynamically import the pipeline function from @xenova/transformers (ESM-only module)
 const { HierarchicalNSW } = require('hnswlib-node');
+const logger = require('../logger');
 
 /**
  * Embed+KNN classification using a WASM-backed transformer embedder
@@ -37,21 +38,21 @@ async function classifyWithML(transactions, modelDir) {
   if (trainCount === 0)
     throw new Error('No training labels found in meta.json');
   if (raw.length % trainCount !== 0) {
-    console.warn(
+    logger.warn(
       `Warning: embeddings array length ${raw.length} is not a multiple of trainCount=${trainCount}; will truncate extra values or pad with zeros.`
     );
   }
   // Ensure each vector has expectedDim components; pad/truncate so raw.length == expectedDim*trainCount
   const needed = expectedDim * trainCount;
   if (raw.length < needed) {
-    console.warn(
+    logger.warn(
       `Padding embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`
     );
     const padded = new Float32Array(needed);
     padded.set(raw);
     raw = padded;
   } else if (raw.length > needed) {
-    console.warn(
+    logger.warn(
       `Truncating embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`
     );
     raw = raw.subarray(0, needed);
@@ -90,13 +91,15 @@ async function classifyWithML(transactions, modelDir) {
   const texts = transactions.map((tx) => tx.description || '');
   const BATCH_SIZE = parseInt(process.env.EMBED_BATCH_SIZE || '512', 10);
   const results = [];
-  console.log(
-    `Embedding & classifying ${transactions.length} txns in batches of ${BATCH_SIZE}...`
+  logger.info(
+    { count: transactions.length, batchSize: BATCH_SIZE },
+    'Embedding & classifying transactions in batches'
   );
   for (let start = 0; start < texts.length; start += BATCH_SIZE) {
     const batchTexts = texts.slice(start, start + BATCH_SIZE);
-    console.log(
-      `  embedding batch ${start}-${Math.min(start + batchTexts.length, texts.length) - 1}`
+    logger.info(
+      { start, end: Math.min(start + batchTexts.length, texts.length) - 1 },
+      'Embedding batch'
     );
     const rawEmb = await embedder(batchTexts, { pooling: 'mean' });
     for (const vecTA of rawEmb) {

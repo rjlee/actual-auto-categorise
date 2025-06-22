@@ -32,11 +32,11 @@ describe('scheduleClassification()', () => {
 
   test('exits process on invalid cron', () => {
     cron.validate.mockReturnValue(false);
-    console.error = jest.fn();
+    logger.error = jest.fn();
     process.exit = jest.fn(code => { throw new Error('exit ' + code); });
     config.CLASSIFY_CRON = 'bad';
     expect(() => scheduleClassification(false)).toThrow('exit 1');
-    expect(console.error).toHaveBeenCalledWith('Invalid CLASSIFY_CRON schedule: bad');
+    expect(logger.error).toHaveBeenCalledWith({ schedule: 'bad' }, 'Invalid CLASSIFY_CRON schedule: bad');
   });
 
   test('schedules classification with correct args and guards overlap', () => {
@@ -85,11 +85,11 @@ describe('scheduleTraining()', () => {
 
   test('exits process on invalid cron', () => {
     cron.validate.mockReturnValue(false);
-    console.error = jest.fn();
+    logger.error = jest.fn();
     process.exit = jest.fn(code => { throw new Error('exit ' + code); });
     config.TRAIN_CRON = 'bad';
     expect(() => scheduleTraining(false)).toThrow('exit 1');
-    expect(console.error).toHaveBeenCalledWith('Invalid TRAIN_CRON schedule: bad');
+    expect(logger.error).toHaveBeenCalledWith({ schedule: 'bad' }, 'Invalid TRAIN_CRON schedule: bad');
   });
 
   test('schedules training with correct args and guards overlap', () => {

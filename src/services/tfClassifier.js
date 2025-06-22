@@ -8,13 +8,15 @@ const path = require('path');
  * @param {string} modelDir - filesystem path to the saved model directory
  * @returns {Array} categorized transactions
  */
+const logger = require('../logger');
+
 async function classifyWithTF(transactions, modelDir) {
   let tf, use;
   try {
     tf = require('@tensorflow/tfjs-node');
     use = require('@tensorflow-models/universal-sentence-encoder');
   } catch (e) {
-    console.warn('TF classifier not available on this platform:', e.message);
+    logger.warn('TF classifier not available on this platform:', e.message);
     return [];
   }
   const classesPath = path.join(modelDir, 'classes.json');

@@ -1,6 +1,7 @@
 const api = require('@actual-app/api');
 require('dotenv').config();
 const fs = require('fs');
+const logger = require('./logger');
 
 const Utils = {
   openBudget: async function () {
@@ -15,10 +16,10 @@ const Utils = {
     const dataDir = process.env.BUDGET_CACHE_DIR || './budget';
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-    console.log('Connecting to Actual API...');
+    logger.info('Connecting to Actual API...');
     await api.init({ dataDir, serverURL: url, password });
 
-    console.log('Downloading budget...');
+    logger.info('Downloading budget...');
     const budgetPassword = process.env.ACTUAL_BUDGET_ENCRYPTION_PASSWORD;
     const dlOpts = {};
     if (budgetPassword) dlOpts.password = budgetPassword;
@@ -27,24 +28,23 @@ const Utils = {
         await api.downloadBudget(budgetId, dlOpts);
       });
     } catch (err) {
-      console.warn(
+      logger.warn(
         'Warning: runImport failed, falling back to direct downloadBudget:',
         err.message
       );
       await api.downloadBudget(budgetId, dlOpts);
     }
-    console.log('Budget downloaded');
+    logger.info('Budget downloaded');
   },
 
   closeBudget: async function () {
-    // console.log('Closing budget...');
     try {
       await api.shutdown();
       if (typeof api.resetBudgetCache === 'function') {
         await api.resetBudgetCache();
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       process.exit(1);
     }
   },

@@ -51,11 +51,9 @@ async function main(args = process.argv.slice(2)) {
     case 'classify': {
       const count = await runClassification({ dryRun, verbose, useLogger: false });
       if (!dryRun) {
-        console.log('Uploading updated budget...');
-        console.log(`Applied ${count} update(s)`);
+        logger.info({ appliedCount: count }, 'Uploading updated budget');
       } else {
-        console.log('✅ Dry-run complete');
-        console.log(`Dry-run summary: would apply ${count} update(s)`);
+        logger.info({ appliedCount: count }, 'Dry-run complete; no updates applied');
       }
       break;
     }

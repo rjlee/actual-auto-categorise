@@ -19,7 +19,7 @@ function scheduleClassification(verbose) {
   const schedule = config.CLASSIFY_CRON || process.env.CLASSIFY_CRON || '0 * * * *';
   const timezone = config.CLASSIFY_CRON_TIMEZONE || process.env.CLASSIFY_CRON_TIMEZONE || 'UTC';
   if (!cron.validate(schedule)) {
-    console.error(`Invalid CLASSIFY_CRON schedule: ${schedule}`);
+    logger.error({ schedule }, `Invalid CLASSIFY_CRON schedule: ${schedule}`);
     process.exit(1);
   }
   logger.info({ job: 'classification', schedule, timezone }, 'Starting classification daemon');
@@ -54,7 +54,7 @@ function scheduleTraining(verbose) {
   const schedule = config.TRAIN_CRON || process.env.TRAIN_CRON || '30 6 * * 1';
   const timezone = config.TRAIN_CRON_TIMEZONE || process.env.TRAIN_CRON_TIMEZONE || 'UTC';
   if (!cron.validate(schedule)) {
-    console.error(`Invalid TRAIN_CRON schedule: ${schedule}`);
+    logger.error({ schedule }, `Invalid TRAIN_CRON schedule: ${schedule}`);
     process.exit(1);
   }
   logger.info({ job: 'training', schedule, timezone }, 'Scheduling weekly training');

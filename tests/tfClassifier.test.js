@@ -21,12 +21,13 @@ describe('classifyWithTF', () => {
       '@tensorflow-models/universal-sentence-encoder',
       () => { throw new Error('no use'); }
     );
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const logger = require('../src/logger');
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {});
     const { classifyWithTF } = require('../src/services/tfClassifier');
     const res = await classifyWithTF([{ id: 'tx', description: 'x' }], modelDir);
     expect(res).toEqual([]);
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('TF classifier not available on this platform:'),
+      'TF classifier not available on this platform:',
       expect.any(String)
     );
     warn.mockRestore();

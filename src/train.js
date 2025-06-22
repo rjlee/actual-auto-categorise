@@ -22,9 +22,7 @@ const config = require('./config');
  * @param {{ verbose?: boolean, useLogger?: boolean }} options
  */
 async function runTraining({ verbose = false, useLogger = false } = {}) {
-  const log = useLogger
-    ? logger
-    : { info: console.log, warn: console.warn, error: console.error, debug: console.debug };
+  const log = logger;
   const outDir = path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 

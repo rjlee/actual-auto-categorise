@@ -8,14 +8,12 @@ const path = require('path');
  */
 async function trainTF(trainingData, modelDir) {
   let tf, use;
+  const logger = require('../logger');
   try {
     tf = require('@tensorflow/tfjs-node');
     use = require('@tensorflow-models/universal-sentence-encoder');
   } catch (e) {
-    console.error(
-      'TF training not supported on this platform:',
-      e.message
-    );
+    logger.warn('TF training not supported on this platform:', e.message);
     return;
   }
   // Prepare labels
@@ -24,7 +22,7 @@ async function trainTF(trainingData, modelDir) {
   const texts = trainingData.map((tx) => tx.description || '');
   const ysArr = trainingData.map((tx) => labelIndex[tx.category]);
 
-  console.log('Loading Universal Sentence Encoder...');
+  logger.info('Loading Universal Sentence Encoder...');
   const encoder = await use.load();
   // Determine embedding dimension
   const emb0 = await encoder.embed([texts[0]]);
@@ -51,9 +49,9 @@ async function trainTF(trainingData, modelDir) {
   const trainBatch = parseInt(process.env.TF_TRAIN_BATCH_SIZE || '32', 10);
   const embedBatch = parseInt(process.env.TF_TRAIN_EMBED_BATCH_SIZE || '512', 10);
 
-  console.log(`Starting TF classifier training for ${trainingData.length} samples`);
+  logger.info(`Starting TF classifier training for ${trainingData.length} samples`);
   for (let epoch = 0; epoch < epochs; epoch++) {
-    console.log(`Epoch ${epoch + 1}/${epochs}`);
+    logger.info(`Epoch ${epoch + 1}/${epochs}`);
     // Shuffle indices
     const idxs = trainingData.map((_, i) => i);
     for (let i = idxs.length - 1; i > 0; i--) {
@@ -86,7 +84,7 @@ async function trainTF(trainingData, modelDir) {
     path.join(modelDir, 'classes.json'),
     JSON.stringify(categories, null, 2)
   );
-  console.log(`TF classifier model and classes saved to ${modelDir}`);
+  logger.info(`TF classifier model and classes saved to ${modelDir}`);
 }
 
 module.exports = { trainTF };

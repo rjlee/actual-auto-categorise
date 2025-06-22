@@ -257,7 +257,7 @@ We use Jest for unit tests and GitHub Actions for continuous integration.
 npm test
 ```
 
-On each push and pull request to `main`, GitHub Actions runs `npm ci` and `npm test` as part of the unified Release pipeline.
+On each push and pull request to `main`, GitHub Actions runs linting (`npm run lint`), formatting checks (`npm run format:check`), installs dependencies (`npm ci`), and runs tests (`npm test`) as part of the unified Release pipeline.
 
 ## Logging & Monitoring
 

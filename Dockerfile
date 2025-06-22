@@ -7,9 +7,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install JS dependencies (omit dev dependencies for a lean build)
+# Install JS dependencies and prune dev dependencies for a lean build
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci && npm prune --production
 
 # Copy application source
 COPY . .

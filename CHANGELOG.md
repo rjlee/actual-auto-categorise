@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.2.1...v1.3.0) (2025-06-22)
+
+
+### Features
+
+* enhance openBudget function to skip import backup based on DISABLE_IMPORT_BACKUPS environment variable ([ee88fb5](https://github.com/rjlee/actual-auto-categorise/commit/ee88fb56014546973b9380b76dc7aa3528e2c054))
+
 ## [1.2.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.2.0...v1.2.1) (2025-06-22)
 
 

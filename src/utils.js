@@ -1,5 +1,6 @@
 const api = require('@actual-app/api');
-require("dotenv").config();
+require('dotenv').config();
+const fs = require('fs');
 
 const Utils = {
   openBudget: async function () {
@@ -12,6 +13,7 @@ const Utils = {
       );
     }
     const dataDir = process.env.BUDGET_CACHE_DIR || './budget';
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
     console.log('Connecting to Actual API...');
     await api.init({ dataDir, serverURL: url, password });

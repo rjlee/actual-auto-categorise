@@ -20,20 +20,30 @@ jest.mock('@xenova/transformers', () => ({
 }));
 
 const { runTraining } = require('../src/train');
-const { getAccounts, getTransactions, getPayees, getCategories } = require('@actual-app/api');
+const {
+  getAccounts,
+  getTransactions,
+  getPayees,
+  getCategories,
+} = require('@actual-app/api');
 
 describe('runTraining pipeline', () => {
   const dataDir = path.resolve(__dirname, '../data');
 
   beforeEach(() => {
     // Clean up any prior output
-    if (fs.existsSync(dataDir)) fs.rmSync(dataDir, { recursive: true, force: true });
+    if (fs.existsSync(dataDir))
+      fs.rmSync(dataDir, { recursive: true, force: true });
     // Stub API methods
     getAccounts.mockResolvedValue([{ id: 'acct1' }]);
     getTransactions.mockResolvedValue([
       {
-        id: 'tx1', reconciled: true, category: 'cat1', payee: 'p1',
-        amount: 123, description: 'desc'
+        id: 'tx1',
+        reconciled: true,
+        category: 'cat1',
+        payee: 'p1',
+        amount: 123,
+        description: 'desc',
       },
     ]);
     getPayees.mockResolvedValue([{ id: 'p1', name: 'Payee 1' }]);
@@ -53,7 +63,7 @@ describe('runTraining pipeline', () => {
     const modelDir = path.join(dataDir, 'tx-classifier-knn');
     expect(fs.existsSync(modelDir)).toBe(true);
     const meta = JSON.parse(
-      fs.readFileSync(path.join(modelDir, 'meta.json'), 'utf8')
+      fs.readFileSync(path.join(modelDir, 'meta.json'), 'utf8'),
     );
     expect(meta).toMatchObject({ k: 5, labels: ['Category 1'], dim: 3 });
     const bin = fs.readFileSync(path.join(modelDir, 'embeddings.bin'));
@@ -68,9 +78,27 @@ describe('runTraining pipeline', () => {
   it('filters out transactions with empty description', async () => {
     // Transactions without payee or with blank description should be dropped
     getTransactions.mockResolvedValue([
-      { id: 'tx1', reconciled: true, category: 'cat1', payee: 'p1', description: 'desc1' },
-      { id: 'tx2', reconciled: true, category: 'cat1', payee: null, description: '' },
-      { id: 'tx3', reconciled: true, category: 'cat1', payee: 'p2', description: '   ' },
+      {
+        id: 'tx1',
+        reconciled: true,
+        category: 'cat1',
+        payee: 'p1',
+        description: 'desc1',
+      },
+      {
+        id: 'tx2',
+        reconciled: true,
+        category: 'cat1',
+        payee: null,
+        description: '',
+      },
+      {
+        id: 'tx3',
+        reconciled: true,
+        category: 'cat1',
+        payee: 'p2',
+        description: '   ',
+      },
     ]);
     getPayees.mockResolvedValue([{ id: 'p1', name: 'Payee 1' }]);
     getCategories.mockResolvedValue([{ id: 'cat1', name: 'Category 1' }]);

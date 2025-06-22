@@ -12,16 +12,16 @@ const {
   getAccounts,
   getTransactions,
   getPayees,
-  getCategories
+  getCategories,
 } = require('@actual-app/api');
 const logger = require('./logger');
 const config = require('./config');
 
 /**
  * Download reconciled, categorized transactions, embed, and save an Embed+KNN model.
- * @param {{ verbose?: boolean, useLogger?: boolean }} options
+ * @param {{ verbose?: boolean }} options
  */
-async function runTraining({ verbose = false, useLogger = false } = {}) {
+async function runTraining({ verbose = false } = {}) {
   const log = logger;
   const outDir = path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
@@ -37,7 +37,10 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
     return;
   }
   // Branch training based on classifierType
-  const classifierType = config.classifierType || config.CLASSIFIER_TYPE || process.env.CLASSIFIER_TYPE;
+  const classifierType =
+    config.classifierType ||
+    config.CLASSIFIER_TYPE ||
+    process.env.CLASSIFIER_TYPE;
   if (classifierType === 'tf') {
     // Delegate to TF trainer service
     const { trainTF } = require('./services/tfTrainer');
@@ -73,7 +76,10 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
     if (cacheDir && fs.existsSync(cacheDir)) {
       for (const item of fs.readdirSync(cacheDir)) {
         try {
-          fs.rmSync(path.join(cacheDir, item), { recursive: true, force: true });
+          fs.rmSync(path.join(cacheDir, item), {
+            recursive: true,
+            force: true,
+          });
         } catch (_) {}
       }
     }
@@ -94,7 +100,9 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
 
     const unknownCount = rawTxns.filter((tx) => !catMap[tx.category]).length;
     if (unknownCount) {
-      log.warn(`Skipping ${unknownCount} transactions with unknown category IDs`);
+      log.warn(
+        `Skipping ${unknownCount} transactions with unknown category IDs`,
+      );
     }
     rawTxns = rawTxns.filter((tx) => catMap[tx.category]);
 
@@ -118,20 +126,22 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
 
     const dataFile = path.join(outDir, 'categorised_transactions.json');
     fs.writeFileSync(dataFile, JSON.stringify(trainingData, null, 2));
-    log.info(`Saved ${trainingData.length} labeled transactions to ${dataFile}`);
+    log.info(
+      `Saved ${trainingData.length} labeled transactions to ${dataFile}`,
+    );
 
     log.info('Loading embedder (WASM BERT model)...');
     const { pipeline: loadPipeline } = require('@xenova/transformers');
     const embedder = await loadPipeline(
       'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2'
+      'Xenova/all-MiniLM-L6-v2',
     );
     const texts = trainingData.map((tx) => tx.description);
     const BATCH = parseInt(process.env.EMBED_BATCH_SIZE || '512', 10);
     const embeddings = [];
     for (let start = 0; start < texts.length; start += BATCH) {
       log.info(
-        `Embedding batch ${start}-${Math.min(start + BATCH, texts.length) - 1}`
+        `Embedding batch ${start}-${Math.min(start + BATCH, texts.length) - 1}`,
       );
       const batchEmb = await embedder(texts.slice(start, start + BATCH), {
         pooling: 'mean',
@@ -149,25 +159,25 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
       JSON.stringify(
         { k, labels: trainingData.map((tx) => tx.category), dim },
         null,
-        2
-      )
+        2,
+      ),
     );
     const buf = Buffer.allocUnsafe(
-      embeddings.length * dim * Float32Array.BYTES_PER_ELEMENT
+      embeddings.length * dim * Float32Array.BYTES_PER_ELEMENT,
     );
     embeddings.forEach((vec, i) =>
       vec.forEach((val, j) =>
-        buf.writeFloatLE(val, Float32Array.BYTES_PER_ELEMENT * (i * dim + j))
-      )
+        buf.writeFloatLE(val, Float32Array.BYTES_PER_ELEMENT * (i * dim + j)),
+      ),
     );
     fs.writeFileSync(path.join(modelDir, 'embeddings.bin'), buf);
     log.info(`✅ Embed+KNN model saved to ${modelDir}`);
     const uniqueCats = Array.from(
-      new Set(trainingData.map((tx) => tx.category))
+      new Set(trainingData.map((tx) => tx.category)),
     );
     fs.writeFileSync(
       path.join(modelDir, 'classes.json'),
-      JSON.stringify(uniqueCats, null, 2)
+      JSON.stringify(uniqueCats, null, 2),
     );
     log.info(`Saved classes.json to ${modelDir}`);
   } catch (err) {
@@ -179,7 +189,10 @@ async function runTraining({ verbose = false, useLogger = false } = {}) {
     if (cacheDir && fs.existsSync(cacheDir)) {
       for (const item of fs.readdirSync(cacheDir)) {
         try {
-          fs.rmSync(path.join(cacheDir, item), { recursive: true, force: true });
+          fs.rmSync(path.join(cacheDir, item), {
+            recursive: true,
+            force: true,
+          });
         } catch (_) {}
       }
     }

@@ -16,8 +16,12 @@ jest.mock('@actual-app/api', () => ({
 }));
 
 // Stub both classifier implementations
-jest.mock('../src/services/mlClassifier', () => ({ classifyWithML: jest.fn() }));
-jest.mock('../src/services/tfClassifier', () => ({ classifyWithTF: jest.fn() }));
+jest.mock('../src/services/mlClassifier', () => ({
+  classifyWithML: jest.fn(),
+}));
+jest.mock('../src/services/tfClassifier', () => ({
+  classifyWithTF: jest.fn(),
+}));
 
 const config = require('../src/config');
 const api = require('@actual-app/api');
@@ -38,7 +42,7 @@ beforeEach(() => {
 
 test('defaults to mlClassifier when no override', async () => {
   classifyWithML.mockResolvedValue([{ id: 't1', category: 'P1' }]);
-  const count = await runClassification({ dryRun: false, verbose: false });
+  await runClassification({ dryRun: false, verbose: false });
   expect(classifyWithML).toHaveBeenCalled();
   expect(classifyWithTF).not.toHaveBeenCalled();
 });
@@ -46,7 +50,7 @@ test('defaults to mlClassifier when no override', async () => {
 test('uses tfClassifier when CLASSIFIER_TYPE=tf in env', async () => {
   process.env.CLASSIFIER_TYPE = 'tf';
   classifyWithTF.mockResolvedValue([{ id: 't1', category: 'P1' }]);
-  const count = await runClassification({ dryRun: false, verbose: false });
+  await runClassification({ dryRun: false, verbose: false });
   expect(classifyWithTF).toHaveBeenCalled();
   expect(classifyWithML).not.toHaveBeenCalled();
 });
@@ -54,7 +58,7 @@ test('uses tfClassifier when CLASSIFIER_TYPE=tf in env', async () => {
 test('uses tfClassifier when config.classifierType=tf', async () => {
   config.classifierType = 'tf';
   classifyWithTF.mockResolvedValue([{ id: 't1', category: 'P1' }]);
-  const count = await runClassification({ dryRun: false, verbose: false });
+  await runClassification({ dryRun: false, verbose: false });
   expect(classifyWithTF).toHaveBeenCalled();
   expect(classifyWithML).not.toHaveBeenCalled();
   delete config.classifierType;

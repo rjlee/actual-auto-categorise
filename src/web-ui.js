@@ -53,7 +53,8 @@ function startWebUi(httpPort, verbose) {
 
   app.get('/', (_req, res) => res.send(uiPageHtml()));
   app.post('/train', async (_req, res) => {
-    if (trainLock) return res.status(409).json({ message: 'Training already in progress' });
+    if (trainLock)
+      return res.status(409).json({ message: 'Training already in progress' });
     trainLock = true;
     try {
       await runTraining({ verbose, useLogger: true });
@@ -65,13 +66,24 @@ function startWebUi(httpPort, verbose) {
     }
   });
   app.post('/classify', async (_req, res) => {
-    if (classifyLock) return res.status(409).json({ message: 'Classification already in progress' });
+    if (classifyLock)
+      return res
+        .status(409)
+        .json({ message: 'Classification already in progress' });
     classifyLock = true;
     try {
-      const count = await runClassification({ dryRun: false, verbose, useLogger: true });
-      res.json({ message: `Classification complete: applied ${count} update(s)` });
+      const count = await runClassification({
+        dryRun: false,
+        verbose,
+        useLogger: true,
+      });
+      res.json({
+        message: `Classification complete: applied ${count} update(s)`,
+      });
     } catch (err) {
-      res.status(500).json({ message: 'Classification failed', error: err.message });
+      res
+        .status(500)
+        .json({ message: 'Classification failed', error: err.message });
     } finally {
       classifyLock = false;
     }

@@ -27,7 +27,11 @@ const { classifyWithTF } = require('./services/tfClassifier');
  */
 const logger = require('./logger');
 
-async function runClassification({ dryRun = false, verbose = false, useLogger = false }) {
+async function runClassification({
+  dryRun = false,
+  verbose = false,
+  useLogger = false,
+}) {
   const log = useLogger
     ? logger
     : { info: () => {}, debug: () => {}, error: () => {} };
@@ -51,13 +55,13 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
     let rawTxns = [];
     for (const acct of accounts) {
       const txns = await getTransactions(acct.id);
-      rawTxns.push(...txns.filter(tx => !tx.reconciled && !tx.category));
+      rawTxns.push(...txns.filter((tx) => !tx.reconciled && !tx.category));
     }
 
     // Prepare descriptions
     const payees = await getPayees();
-    const payeeMap = Object.fromEntries(payees.map(p => [p.id, p.name]));
-    let toClassify = rawTxns.map(tx => ({
+    const payeeMap = Object.fromEntries(payees.map((p) => [p.id, p.name]));
+    let toClassify = rawTxns.map((tx) => ({
       id: tx.id,
       // Combine payee name, memo/notes, and transaction amount
       description: [
@@ -65,21 +69,24 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
         tx.notes,
         tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
       ]
-        .filter(s => typeof s === 'string' && s.trim())
+        .filter((s) => typeof s === 'string' && s.trim())
         .join(' – '),
     }));
     // Skip records with empty combined description
-    toClassify = toClassify.filter(row => row.description.trim() !== '');
+    toClassify = toClassify.filter((row) => row.description.trim() !== '');
     if (verbose) {
       log.debug({ toClassify }, 'Prepared records to classify');
     }
 
     // Choose and run classification backend (ml or tf)
     const classifierType =
-      config.classifierType || config.CLASSIFIER_TYPE || process.env.CLASSIFIER_TYPE || 'ml';
+      config.classifierType ||
+      config.CLASSIFIER_TYPE ||
+      process.env.CLASSIFIER_TYPE ||
+      'ml';
     const modelDir = path.join(
       outDir,
-      classifierType === 'tf' ? 'tx-classifier-tf' : 'tx-classifier-knn'
+      classifierType === 'tf' ? 'tx-classifier-tf' : 'tx-classifier-knn',
     );
     const classified =
       classifierType === 'tf'
@@ -91,8 +98,11 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
     let appliedCount = 0;
     for (const tx of classified) {
       if (!tx.category) continue;
-      log.debug({ txId: tx.id, category: tx.category }, 'Applying classification');
-      const catObj = categories.find(c => c.name === tx.category);
+      log.debug(
+        { txId: tx.id, category: tx.category },
+        'Applying classification',
+      );
+      const catObj = categories.find((c) => c.name === tx.category);
       if (!catObj) {
         log.error({ category: tx.category }, 'Category not found');
         process.exit(1);
@@ -100,7 +110,10 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
       if (!dryRun) {
         await updateTransaction(tx.id, { category: catObj.id });
       } else {
-        log.info({ txId: tx.id, category: tx.category }, 'Dry-run; skip updateTransaction');
+        log.info(
+          { txId: tx.id, category: tx.category },
+          'Dry-run; skip updateTransaction',
+        );
       }
       appliedCount++;
     }
@@ -113,7 +126,10 @@ async function runClassification({ dryRun = false, verbose = false, useLogger = 
     if (cacheDir && fs.existsSync(cacheDir)) {
       for (const item of fs.readdirSync(cacheDir)) {
         try {
-          fs.rmSync(path.join(cacheDir, item), { recursive: true, force: true });
+          fs.rmSync(path.join(cacheDir, item), {
+            recursive: true,
+            force: true,
+          });
         } catch (_) {}
       }
     }

@@ -13,13 +13,19 @@ describe('CLI train (train.js)', () => {
   test('calls runTraining with verbose flag', async () => {
     runTrainingSpy.mockResolvedValue();
     await main(['--verbose'], runTrainingSpy);
-    expect(runTrainingSpy).toHaveBeenCalledWith({ verbose: true, useLogger: false });
+    expect(runTrainingSpy).toHaveBeenCalledWith({
+      verbose: true,
+      useLogger: false,
+    });
   });
 
   test('defaults to non-verbose run', async () => {
     runTrainingSpy.mockResolvedValue();
     await main([], runTrainingSpy);
-    expect(runTrainingSpy).toHaveBeenCalledWith({ verbose: false, useLogger: false });
+    expect(runTrainingSpy).toHaveBeenCalledWith({
+      verbose: false,
+      useLogger: false,
+    });
   });
 
   test('propagates errors from runTraining without exiting', async () => {

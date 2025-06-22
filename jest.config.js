@@ -10,6 +10,7 @@ module.exports = {
   modulePathIgnorePatterns: ['/resources/'],
   moduleNameMapper: {
     '^@tensorflow/tfjs-node$': '<rootDir>/tests/mocks/tfjs-node.js',
-    '^@tensorflow-models/universal-sentence-encoder$': '<rootDir>/tests/mocks/universal-sentence-encoder.js',
+    '^@tensorflow-models/universal-sentence-encoder$':
+      '<rootDir>/tests/mocks/universal-sentence-encoder.js',
   },
 };

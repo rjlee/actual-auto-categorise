@@ -7,7 +7,10 @@ const { runClassification } = require('./classifier');
 
 const logger = require('./logger');
 
-async function main(args = process.argv.slice(2), executor = runClassification) {
+async function main(
+  args = process.argv.slice(2),
+  executor = runClassification,
+) {
   const DRY_RUN = args.includes('--dry-run');
   const VERBOSE = args.includes('--verbose');
 

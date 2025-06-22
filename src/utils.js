@@ -10,7 +10,7 @@ const Utils = {
     const budgetId = process.env.ACTUAL_BUDGET_ID;
     if (!url || !password || !budgetId) {
       throw new Error(
-        'Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_BUDGET_ID environment variables'
+        'Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_BUDGET_ID environment variables',
       );
     }
     const dataDir = process.env.BUDGET_CACHE_DIR || './budget';
@@ -34,7 +34,7 @@ const Utils = {
       } catch (err) {
         logger.warn(
           'Warning: runImport failed, falling back to direct downloadBudget:',
-          err.message
+          err.message,
         );
         await api.downloadBudget(budgetId, dlOpts);
       }
@@ -53,5 +53,5 @@ const Utils = {
       process.exit(1);
     }
   },
-}
+};
 module.exports = Utils;

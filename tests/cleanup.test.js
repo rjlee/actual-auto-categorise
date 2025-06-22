@@ -16,8 +16,12 @@ jest.mock('../src/utils', () => ({
 }));
 
 // Stub classifiers for quick execution
-jest.mock('../src/services/mlClassifier', () => ({ classifyWithML: jest.fn(async () => []) }));
-jest.mock('../src/services/tfClassifier', () => ({ classifyWithTF: jest.fn(async () => []) }));
+jest.mock('../src/services/mlClassifier', () => ({
+  classifyWithML: jest.fn(async () => []),
+}));
+jest.mock('../src/services/tfClassifier', () => ({
+  classifyWithTF: jest.fn(async () => []),
+}));
 // Stub embedder pipeline to avoid importing ESM modules
 jest.mock('@xenova/transformers', () => ({
   __esModule: true,

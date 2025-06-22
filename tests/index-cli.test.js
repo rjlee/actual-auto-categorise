@@ -5,15 +5,22 @@ const fs = require('fs');
 const path = require('path');
 const { main } = require('../src/index');
 
-jest.mock('../src/train', () => ({ runTraining: jest.fn().mockResolvedValue() }));
-jest.mock('../src/classifier', () => ({ runClassification: jest.fn().mockResolvedValue(0) }));
-jest.mock('../src/daemon', () => ({ runDaemon: jest.fn().mockResolvedValue() }));
+jest.mock('../src/train', () => ({
+  runTraining: jest.fn().mockResolvedValue(),
+}));
+jest.mock('../src/classifier', () => ({
+  runClassification: jest.fn().mockResolvedValue(0),
+}));
+jest.mock('../src/daemon', () => ({
+  runDaemon: jest.fn().mockResolvedValue(),
+}));
 
 describe('Unified CLI dispatcher (src/index.js)', () => {
   const tmpDir = path.join(__dirname, 'tmp-cli');
   const originalCwd = process.cwd();
   beforeAll(() => {
-    if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
+    if (fs.existsSync(tmpDir))
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     fs.mkdirSync(tmpDir, { recursive: true });
   });
   afterAll(() => {
@@ -33,7 +40,11 @@ describe('Unified CLI dispatcher (src/index.js)', () => {
     await main(['--mode', 'classify']);
     const { runClassification } = require('../src/classifier');
     expect(runClassification).toHaveBeenCalledWith(
-      expect.objectContaining({ dryRun: false, verbose: false, useLogger: false })
+      expect.objectContaining({
+        dryRun: false,
+        verbose: false,
+        useLogger: false,
+      }),
     );
   });
 

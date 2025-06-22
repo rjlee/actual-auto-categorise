@@ -1,6 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
 // Mock Actual API methods
 jest.mock('@actual-app/api', () => ({
   init: jest.fn(),
@@ -33,7 +30,8 @@ describe('openBudget utility', () => {
     delete process.env.ACTUAL_PASSWORD;
     delete process.env.ACTUAL_BUDGET_ID;
     await expect(openBudget()).rejects.toThrow(
-      /Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_BUDGET_ID/);
+      /Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_BUDGET_ID/,
+    );
   });
 
   test('calls init and falls back when runImport fails', async () => {
@@ -41,11 +39,15 @@ describe('openBudget utility', () => {
     process.env.ACTUAL_PASSWORD = 'p';
     process.env.ACTUAL_BUDGET_ID = 'b';
     api.init.mockResolvedValue();
-    api.runImport.mockRejectedValue(new Error('fail')); 
+    api.runImport.mockRejectedValue(new Error('fail'));
     api.downloadBudget.mockResolvedValue();
 
     await expect(openBudget()).resolves.toBeUndefined();
-    expect(api.init).toHaveBeenCalledWith({ dataDir: expect.any(String), serverURL: 'u', password: 'p' });
+    expect(api.init).toHaveBeenCalledWith({
+      dataDir: expect.any(String),
+      serverURL: 'u',
+      password: 'p',
+    });
     expect(api.runImport).toHaveBeenCalled();
     expect(api.downloadBudget).toHaveBeenCalled();
   });
@@ -78,7 +80,9 @@ describe('openBudget utility', () => {
     expect(api.init).toHaveBeenCalled();
     expect(api.runImport).not.toHaveBeenCalled();
     expect(api.downloadBudget).toHaveBeenCalled();
-    expect(info).toHaveBeenCalledWith('Skipping import backup (DISABLE_IMPORT_BACKUPS=true)');
+    expect(info).toHaveBeenCalledWith(
+      'Skipping import backup (DISABLE_IMPORT_BACKUPS=true)',
+    );
   });
 });
 
@@ -94,7 +98,9 @@ describe('closeBudget utility', () => {
   test('exits on shutdown failure', async () => {
     api.shutdown.mockRejectedValue(new Error('fail'));
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(process, 'exit').mockImplementation(code => { throw new Error('exit ' + code); });
+    jest.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error('exit ' + code);
+    });
     await expect(closeBudget()).rejects.toThrow('exit 1');
   });
 });

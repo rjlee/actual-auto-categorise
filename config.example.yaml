@@ -2,12 +2,12 @@
 # Copy to config.yaml or config.yml in the project root and adjust settings as needed.
 # config.yaml example
 # Base directory for budget data (train and classify subdirectories created here)
-dataDir: "./budget"
+dataDir: './budget'
 # Classification schedule (once an hour on the hour)
-CLASSIFY_CRON: "0 * * * *"
+CLASSIFY_CRON: '0 * * * *'
 CLASSIFY_CRON_TIMEZONE: UTC
 # Training schedule (once a week Monday at 06:30 UTC)
-TRAIN_CRON: "30 6 * * 1"
+TRAIN_CRON: '30 6 * * 1'
 TRAIN_CRON_TIMEZONE: UTC
 # Disable cron scheduling (daemon mode only; default: false)
 DISABLE_CRON_SCHEDULING: false

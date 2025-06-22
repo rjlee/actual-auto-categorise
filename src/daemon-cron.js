@@ -19,11 +19,14 @@ cron.schedule(
     const startTs = new Date().toISOString();
     logger.info({ ts: startTs }, 'Starting classification run');
     try {
-      const applied = await runClassification({ dryRun: false, verbose: false });
+      const applied = await runClassification({
+        dryRun: false,
+        verbose: false,
+      });
       logger.info({ ts: startTs, applied }, 'Classification run complete');
     } catch (err) {
       logger.error({ err, ts: startTs }, 'Classification error');
     }
   },
-  { timezone: TIMEZONE }
+  { timezone: TIMEZONE },
 );

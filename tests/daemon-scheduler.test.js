@@ -17,8 +17,12 @@ const logger = require('../src/logger');
 const config = require('../src/config');
 
 // Stub classifiers and trainers so callback bodies don't run heavy logic
-jest.mock('../src/classifier', () => ({ runClassification: jest.fn().mockResolvedValue(0) }));
-jest.mock('../src/train', () => ({ runTraining: jest.fn().mockResolvedValue() }));
+jest.mock('../src/classifier', () => ({
+  runClassification: jest.fn().mockResolvedValue(0),
+}));
+jest.mock('../src/train', () => ({
+  runTraining: jest.fn().mockResolvedValue(),
+}));
 
 const { scheduleClassification, scheduleTraining } = require('../src/daemon');
 
@@ -33,10 +37,15 @@ describe('scheduleClassification()', () => {
   test('exits process on invalid cron', () => {
     cron.validate.mockReturnValue(false);
     logger.error = jest.fn();
-    process.exit = jest.fn(code => { throw new Error('exit ' + code); });
+    process.exit = jest.fn((code) => {
+      throw new Error('exit ' + code);
+    });
     config.CLASSIFY_CRON = 'bad';
     expect(() => scheduleClassification(false)).toThrow('exit 1');
-    expect(logger.error).toHaveBeenCalledWith({ schedule: 'bad' }, 'Invalid CLASSIFY_CRON schedule: bad');
+    expect(logger.error).toHaveBeenCalledWith(
+      { schedule: 'bad' },
+      'Invalid CLASSIFY_CRON schedule: bad',
+    );
   });
 
   test('schedules classification with correct args and guards overlap', () => {
@@ -51,16 +60,24 @@ describe('scheduleClassification()', () => {
     });
     scheduleClassification(true);
     expect(logger.info).toHaveBeenCalledWith(
-      { job: 'classification', schedule: '*/5 * * * *', timezone: 'America/Chicago' },
-      'Starting classification daemon'
+      {
+        job: 'classification',
+        schedule: '*/5 * * * *',
+        timezone: 'America/Chicago',
+      },
+      'Starting classification daemon',
     );
     // First run should invoke runClassification
     scheduleCb();
-    expect(logger.info).toHaveBeenCalledWith(expect.any(Object), 'Daemon classification run start');
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.any(Object),
+      'Daemon classification run start',
+    );
     // Second run overlaps: should log a warning, not start again
     scheduleCb();
-    expect(logger.warn).toHaveBeenCalledWith(expect.any(Object),
-      'Skipping scheduled classification run: previous run still in progress'
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(Object),
+      'Skipping scheduled classification run: previous run still in progress',
     );
   });
   test('skips scheduling when DISABLE_CRON_SCHEDULING is true', () => {
@@ -70,7 +87,7 @@ describe('scheduleClassification()', () => {
     expect(cron.schedule).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
       { job: 'classification' },
-      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING'
+      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING',
     );
   });
 });
@@ -86,10 +103,15 @@ describe('scheduleTraining()', () => {
   test('exits process on invalid cron', () => {
     cron.validate.mockReturnValue(false);
     logger.error = jest.fn();
-    process.exit = jest.fn(code => { throw new Error('exit ' + code); });
+    process.exit = jest.fn((code) => {
+      throw new Error('exit ' + code);
+    });
     config.TRAIN_CRON = 'bad';
     expect(() => scheduleTraining(false)).toThrow('exit 1');
-    expect(logger.error).toHaveBeenCalledWith({ schedule: 'bad' }, 'Invalid TRAIN_CRON schedule: bad');
+    expect(logger.error).toHaveBeenCalledWith(
+      { schedule: 'bad' },
+      'Invalid TRAIN_CRON schedule: bad',
+    );
   });
 
   test('schedules training with correct args and guards overlap', () => {
@@ -104,15 +126,19 @@ describe('scheduleTraining()', () => {
     scheduleTraining(true);
     expect(logger.info).toHaveBeenCalledWith(
       { job: 'training', schedule: '15 3 * * *', timezone: 'UTC' },
-      'Scheduling weekly training'
+      'Scheduling weekly training',
     );
     // First run
     scheduleCb();
-    expect(logger.info).toHaveBeenCalledWith(expect.any(Object), 'Daemon training run start');
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.any(Object),
+      'Daemon training run start',
+    );
     // Overlapping skip
     scheduleCb();
-    expect(logger.warn).toHaveBeenCalledWith(expect.any(Object),
-      'Skipping scheduled training: previous run still in progress'
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.any(Object),
+      'Skipping scheduled training: previous run still in progress',
     );
   });
   test('skips scheduling when DISABLE_CRON_SCHEDULING is true', () => {
@@ -122,7 +148,7 @@ describe('scheduleTraining()', () => {
     expect(cron.schedule).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
       { job: 'training' },
-      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING'
+      'Cron scheduling disabled via DISABLE_CRON_SCHEDULING',
     );
   });
 });

@@ -25,8 +25,8 @@ const origStdout = process.stdout.write.bind(process.stdout);
 process.stdout.write = (chunk, ...args) => {
   const s = chunk instanceof Buffer ? chunk.toString() : chunk;
   if (
-    START_PATTERNS.some(p => s.startsWith(p)) ||
-    INCLUDE_PATTERNS.some(p => s.includes(p))
+    START_PATTERNS.some((p) => s.startsWith(p)) ||
+    INCLUDE_PATTERNS.some((p) => s.includes(p))
   ) {
     return true;
   }
@@ -36,7 +36,7 @@ process.stdout.write = (chunk, ...args) => {
 const origStderr = process.stderr.write.bind(process.stderr);
 process.stderr.write = (chunk, ...args) => {
   const s = chunk instanceof Buffer ? chunk.toString() : chunk;
-  if (INCLUDE_PATTERNS.some(p => s.includes(p))) {
+  if (INCLUDE_PATTERNS.some((p) => s.includes(p))) {
     return true;
   }
   return origStderr(chunk, ...args);

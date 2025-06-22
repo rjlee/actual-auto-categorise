@@ -6,7 +6,13 @@ jest.mock('@actual-app/api', () => {
   const getTransactions = jest
     .fn()
     .mockImplementationOnce(async () => [
-      { id: 't1', reconciled: true, category: 'c1', payee: 'p1', description: 'd' },
+      {
+        id: 't1',
+        reconciled: true,
+        category: 'c1',
+        payee: 'p1',
+        description: 'd',
+      },
     ])
     .mockImplementationOnce(async () => [
       { id: 't1', reconciled: false, payee: 'p1', description: 'd' },
@@ -50,7 +56,13 @@ describe('Pipeline E2E (train→classify)', () => {
     expect(api.downloadBudget).toHaveBeenCalled();
 
     // Next classification phase
-    await runClassification({ dryRun: false, verbose: false, useLogger: false });
-    expect(api.updateTransaction).toHaveBeenCalledWith('t1', { category: 'c1' });
+    await runClassification({
+      dryRun: false,
+      verbose: false,
+      useLogger: false,
+    });
+    expect(api.updateTransaction).toHaveBeenCalledWith('t1', {
+      category: 'c1',
+    });
   });
 });

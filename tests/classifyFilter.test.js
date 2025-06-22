@@ -1,5 +1,3 @@
-const path = require('path');
-
 // Mock budget utils
 jest.mock('../src/utils', () => ({
   openBudget: jest.fn(),
@@ -15,7 +13,12 @@ jest.mock('@actual-app/api', () => ({
   getCategories: jest.fn(),
   updateTransaction: jest.fn(),
 }));
-const { getAccounts, getTransactions, getPayees, getCategories } = require('@actual-app/api');
+const {
+  getAccounts,
+  getTransactions,
+  getPayees,
+  getCategories,
+} = require('@actual-app/api');
 
 // Mock ML classifier
 jest.mock('../src/services/mlClassifier', () => ({
@@ -37,9 +40,30 @@ describe('classification filter for empty descriptions', () => {
     openBudget.mockResolvedValue();
     getAccounts.mockResolvedValue([{ id: 'acct1' }]);
     getTransactions.mockResolvedValue([
-      { id: 'tx1', reconciled: false, category: null, payee: 'p1', notes: 'memo', amount: 200 },
-      { id: 'tx2', reconciled: false, category: null, payee: null, notes: '',    amount: 123 },
-      { id: 'tx3', reconciled: false, category: null, payee: null, notes: '   ', amount: 50  },
+      {
+        id: 'tx1',
+        reconciled: false,
+        category: null,
+        payee: 'p1',
+        notes: 'memo',
+        amount: 200,
+      },
+      {
+        id: 'tx2',
+        reconciled: false,
+        category: null,
+        payee: null,
+        notes: '',
+        amount: 123,
+      },
+      {
+        id: 'tx3',
+        reconciled: false,
+        category: null,
+        payee: null,
+        notes: '   ',
+        amount: 50,
+      },
     ]);
     getPayees.mockResolvedValue([{ id: 'p1', name: 'Payee One' }]);
     await runClassification({ dryRun: true, verbose: false, useLogger: true });
@@ -49,7 +73,7 @@ describe('classification filter for empty descriptions', () => {
         { id: 'tx2', description: '1.23' },
         { id: 'tx3', description: '0.50' },
       ],
-      expect.any(String)
+      expect.any(String),
     );
   });
 });

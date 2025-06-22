@@ -3,8 +3,13 @@
  */
 // Stub training/classification and budget utils to avoid DB calls and logs
 jest.mock('../src/train', () => ({ runTraining: jest.fn(async () => {}) }));
-jest.mock('../src/classifier', () => ({ runClassification: jest.fn(async () => 0) }));
-jest.mock('../src/utils', () => ({ openBudget: jest.fn(async () => {}), closeBudget: jest.fn(async () => {}) }));
+jest.mock('../src/classifier', () => ({
+  runClassification: jest.fn(async () => 0),
+}));
+jest.mock('../src/utils', () => ({
+  openBudget: jest.fn(async () => {}),
+  closeBudget: jest.fn(async () => {}),
+}));
 const { startWebUi } = require('../src/web-ui');
 
 describe('Web UI server (E2E)', () => {
@@ -15,7 +20,7 @@ describe('Web UI server (E2E)', () => {
     const port = server.address().port;
     url = `http://127.0.0.1:${port}`;
   });
-  afterAll(() => new Promise(resolve => server.close(resolve)));
+  afterAll(() => new Promise((resolve) => server.close(resolve)));
 
   test('GET / serves HTML with buttons', async () => {
     const res = await fetch(url + '/');

@@ -24,14 +24,14 @@ async function classifyWithML(transactions, modelDir) {
   } = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
   if (expectedDim == null) {
     throw new Error(
-      `Missing 'dim' in meta.json at ${metaPath}. Please re-run 'npm run train' to regenerate the model files.`
+      `Missing 'dim' in meta.json at ${metaPath}. Please re-run 'npm run train' to regenerate the model files.`,
     );
   }
   const buf = fs.readFileSync(embPath);
   let raw = new Float32Array(
     buf.buffer,
     buf.byteOffset,
-    buf.length / Float32Array.BYTES_PER_ELEMENT
+    buf.length / Float32Array.BYTES_PER_ELEMENT,
   );
   const trainCount = trainLabels.length;
   const searchK = Math.min(k, trainCount);
@@ -39,21 +39,21 @@ async function classifyWithML(transactions, modelDir) {
     throw new Error('No training labels found in meta.json');
   if (raw.length % trainCount !== 0) {
     logger.warn(
-      `Warning: embeddings array length ${raw.length} is not a multiple of trainCount=${trainCount}; will truncate extra values or pad with zeros.`
+      `Warning: embeddings array length ${raw.length} is not a multiple of trainCount=${trainCount}; will truncate extra values or pad with zeros.`,
     );
   }
   // Ensure each vector has expectedDim components; pad/truncate so raw.length == expectedDim*trainCount
   const needed = expectedDim * trainCount;
   if (raw.length < needed) {
     logger.warn(
-      `Padding embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`
+      `Padding embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`,
     );
     const padded = new Float32Array(needed);
     padded.set(raw);
     raw = padded;
   } else if (raw.length > needed) {
     logger.warn(
-      `Truncating embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`
+      `Truncating embeddings from ${raw.length} → ${needed} floats (expectedDim * trainCount).`,
     );
     raw = raw.subarray(0, needed);
   }
@@ -86,20 +86,20 @@ async function classifyWithML(transactions, modelDir) {
   // Load feature extractor and apply mean-pooling per query
   const embedder = await pipeline(
     'feature-extraction',
-    'Xenova/all-MiniLM-L6-v2'
+    'Xenova/all-MiniLM-L6-v2',
   );
   const texts = transactions.map((tx) => tx.description || '');
   const BATCH_SIZE = parseInt(process.env.EMBED_BATCH_SIZE || '512', 10);
   const results = [];
   logger.info(
     { count: transactions.length, batchSize: BATCH_SIZE },
-    'Embedding & classifying transactions in batches'
+    'Embedding & classifying transactions in batches',
   );
   for (let start = 0; start < texts.length; start += BATCH_SIZE) {
     const batchTexts = texts.slice(start, start + BATCH_SIZE);
     logger.info(
       { start, end: Math.min(start + batchTexts.length, texts.length) - 1 },
-      'Embedding batch'
+      'Embedding batch',
     );
     const rawEmb = await embedder(batchTexts, { pooling: 'mean' });
     for (const vecTA of rawEmb) {
@@ -118,7 +118,7 @@ async function classifyWithML(transactions, modelDir) {
         counts[lbl] = (counts[lbl] || 0) + 1;
       }
       results.push(
-        Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] || 'other'
+        Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] || 'other',
       );
     }
   }

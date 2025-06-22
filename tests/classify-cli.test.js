@@ -13,13 +13,19 @@ describe('CLI classify (classify.js)', () => {
   test('live run logs uploading message', async () => {
     runClassification.mockResolvedValue(5);
     await main([]);
-    expect(logger.info).toHaveBeenCalledWith({ appliedCount: 5 }, 'Uploading updated budget');
+    expect(logger.info).toHaveBeenCalledWith(
+      { appliedCount: 5 },
+      'Uploading updated budget',
+    );
   });
 
   test('dry-run logs dry-run message', async () => {
     runClassification.mockResolvedValue(2);
     await main(['--dry-run']);
-    expect(logger.info).toHaveBeenCalledWith({ appliedCount: 2 }, 'Dry-run complete; no updates applied');
+    expect(logger.info).toHaveBeenCalledWith(
+      { appliedCount: 2 },
+      'Dry-run complete; no updates applied',
+    );
   });
 
   test('error during runClassification causes exit', async () => {
@@ -27,7 +33,10 @@ describe('CLI classify (classify.js)', () => {
     runClassification.mockRejectedValue(err);
     jest.spyOn(process, 'exit').mockImplementation(() => {});
     await main([]);
-    expect(logger.error).toHaveBeenCalledWith({ err }, 'Error during classification');
+    expect(logger.error).toHaveBeenCalledWith(
+      { err },
+      'Error during classification',
+    );
     expect(process.exit).toHaveBeenCalledWith(1);
   });
 });

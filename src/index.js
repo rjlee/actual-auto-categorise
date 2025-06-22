@@ -24,36 +24,67 @@ async function main(args = process.argv.slice(2)) {
       alias: 'm',
       choices: ['train', 'classify', 'daemon'],
       default: config.mode || 'classify',
-      describe: 'Mode to run'
+      describe: 'Mode to run',
     })
-    .option('dry-run', { type: 'boolean', default: false, describe: 'Do not update Actual' })
-    .option('verbose', { type: 'boolean', default: false, describe: 'Verbose logging' })
-    .option('ui',       { type: 'boolean', default: false, describe: 'Start web UI server (daemon mode only; also enabled by HTTP_PORT)' })
-    .option('http-port',{ type: 'number', default: parseInt(config.httpPort ?? config.HTTP_PORT ?? process.env.HTTP_PORT ?? 3000, 10), describe: 'Port for web UI server' })
-    .help()
-    .argv;
+    .option('dry-run', {
+      type: 'boolean',
+      default: false,
+      describe: 'Do not update Actual',
+    })
+    .option('verbose', {
+      type: 'boolean',
+      default: false,
+      describe: 'Verbose logging',
+    })
+    .option('ui', {
+      type: 'boolean',
+      default: false,
+      describe:
+        'Start web UI server (daemon mode only; also enabled by HTTP_PORT)',
+    })
+    .option('http-port', {
+      type: 'number',
+      default: parseInt(
+        config.httpPort ?? config.HTTP_PORT ?? process.env.HTTP_PORT ?? 3000,
+        10,
+      ),
+      describe: 'Port for web UI server',
+    })
+    .help().argv;
   const { mode, dryRun, verbose, ui, httpPort } = argv;
   const useStructuredLogging = mode === 'daemon';
   // Use distinct budget cache directory per mode (train/classify)
-  const baseDataDir = config.dataDir || process.env.BUDGET_CACHE_DIR || './budget';
+  const baseDataDir =
+    config.dataDir || process.env.BUDGET_CACHE_DIR || './budget';
   const modeDataDir = path.join(baseDataDir, mode);
   // Ensure the mode-specific budget cache directory exists
-  if (!fs.existsSync(modeDataDir)) fs.mkdirSync(modeDataDir, { recursive: true });
+  if (!fs.existsSync(modeDataDir))
+    fs.mkdirSync(modeDataDir, { recursive: true });
   process.env.BUDGET_CACHE_DIR = modeDataDir;
   if (useStructuredLogging) {
-    logger.info({ mode, modeDataDir }, 'Using mode-specific budget data directory');
+    logger.info(
+      { mode, modeDataDir },
+      'Using mode-specific budget data directory',
+    );
   }
   switch (mode) {
     case 'train':
-      await runTraining({ verbose, useLogger: useStructuredLogging });
+      await runTraining({ verbose });
       break;
 
     case 'classify': {
-      const count = await runClassification({ dryRun, verbose, useLogger: false });
+      const count = await runClassification({
+        dryRun,
+        verbose,
+        useLogger: false,
+      });
       if (!dryRun) {
         logger.info({ appliedCount: count }, 'Uploading updated budget');
       } else {
-        logger.info({ appliedCount: count }, 'Dry-run complete; no updates applied');
+        logger.info(
+          { appliedCount: count },
+          'Dry-run complete; no updates applied',
+        );
       }
       break;
     }

@@ -6,7 +6,7 @@ services:
       - .env
     # Expose the web UI port (default HTTP_PORT or 3000)
     ports:
-      - "${HTTP_PORT:-3000}:${HTTP_PORT:-3000}"
+      - '${HTTP_PORT:-3000}:${HTTP_PORT:-3000}'
     restart: unless-stopped
     volumes:
       # Persist model and budget data (host directory bind mounts)

@@ -46,6 +46,16 @@ Install dependencies:
 npm install
 ```
 
+### Linting and formatting
+
+After installing dependencies, you can lint the code and enforce formatting:
+
+```bash
+npm run lint
+npm run lint:fix
+npm run format
+```
+
 Configure environment variables in a `.env` file (or export them):
 
 ```
@@ -55,6 +65,7 @@ ACTUAL_BUDGET_ID=your_budget_id
 # Optional: path to store local budget data (default: ./budget)
 BUDGET_CACHE_DIR=./budget
 ```
+
 > **Security note:** If connecting to a self-signed Actual Budget instance, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in your environment. This disables certificate verification and makes TLS/HTTPS requests insecure.
 
 You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `config.yml`) in the project root to set default CLI options:
@@ -62,12 +73,12 @@ You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `c
 ```yaml
 # config.yaml example
 # Base directory for budget data (train and classify subdirectories created here)
-dataDir: "./budget"
+dataDir: './budget'
 # Classification schedule (once an hour on the hour)
-CLASSIFY_CRON: "0 * * * *"
+CLASSIFY_CRON: '0 * * * *'
 CLASSIFY_CRON_TIMEZONE: UTC
 # Training schedule (once a week Monday at 06:30 UTC)
-TRAIN_CRON: "30 6 * * 1"
+TRAIN_CRON: '30 6 * * 1'
 TRAIN_CRON_TIMEZONE: UTC
 # Disable cron scheduling (daemon mode only; default: false)
 DISABLE_CRON_SCHEDULING: false
@@ -89,6 +100,7 @@ Retrieve past transactions and train the model (Embed+KNN by default):
 # via unified CLI (Embed+KNN)
 npm start -- --mode train
 ```
+
 ```bash
 # Or TF.js classifier training
 CLASSIFIER_TYPE=tf npm start -- --mode train
@@ -116,8 +128,9 @@ On network or API errors during budget download, the classification run will abo
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.
 
 Options:
-- `--dry-run`   perform classification without updating transactions
-- `--verbose`   print each transaction and its predicted category
+
+- `--dry-run` perform classification without updating transactions
+- `--verbose` print each transaction and its predicted category
 
 ## How the classifiers work
 
@@ -137,7 +150,6 @@ Under the hood, this project uses a two-step Embed+KNN approach:
    - At prediction time (`npm start -- --mode classify`), new transaction descriptions are embedded the same way and normalized to unit length. We build an in-memory HNSW index (via `hnswlib-node`) over the training embeddings and perform an exact kNN search using cosine similarity.
    - The predicted category is chosen by a majority vote among the k nearest neighbors.
 
-
 This approach lets us efficiently classify transactions based on semantic textual similarity, without requiring an external service or GPU.
 
 ### TensorFlow.js classifier
@@ -152,24 +164,23 @@ The TensorFlow.js classifier uses a saved Layers model and the Universal Sentenc
 
 ### Classifier comparison
 
-| Feature               | Embed+KNN (ml)                           | TensorFlow.js (tf)                              |
-|:----------------------|:-----------------------------------------|:------------------------------------------------|
-| Training time         | Fast (seconds–minutes) on CPU            | Slower (minutes to hours; neural training)      |
-| Inference speed       | Very fast (µs per sample)                | Moderate (ms per batch)                         |
-| CPU requirements      | Pure JS; no native addons                | Requires `tfjs-node` native binding             |
-| GPU support           | No GPU acceleration                      | Optional GPU with `tfjs-node-gpu`              |
-| Dependencies          | Lightweight (JS only)                    | Heavy (tfjs-core, tfjs-node, USE)               |
-| Model size            | Small (meta+bin ≈ few MB)                | Moderate (model.json + shards ≈ tens of MB)     |
-| Node.js compatibility | Node.js ≥20                              | Node.js 20 (ABI issues with ≥23)                |
-| Flexibility           | Fixed kNN algorithm                      | Configurable neural network topology           |
-| Accuracy               | Good baseline accuracy through nearest neighbors | Potentially higher with neural network tuning    |
-| Accuracy tuning        | Limited to k and embeddings              | Tunable network architecture and parameters    |
-
+| Feature               | Embed+KNN (ml)                                   | TensorFlow.js (tf)                            |
+| :-------------------- | :----------------------------------------------- | :-------------------------------------------- |
+| Training time         | Fast (seconds–minutes) on CPU                    | Slower (minutes to hours; neural training)    |
+| Inference speed       | Very fast (µs per sample)                        | Moderate (ms per batch)                       |
+| CPU requirements      | Pure JS; no native addons                        | Requires `tfjs-node` native binding           |
+| GPU support           | No GPU acceleration                              | Optional GPU with `tfjs-node-gpu`             |
+| Dependencies          | Lightweight (JS only)                            | Heavy (tfjs-core, tfjs-node, USE)             |
+| Model size            | Small (meta+bin ≈ few MB)                        | Moderate (model.json + shards ≈ tens of MB)   |
+| Node.js compatibility | Node.js ≥20                                      | Node.js 20 (ABI issues with ≥23)              |
+| Flexibility           | Fixed kNN algorithm                              | Configurable neural network topology          |
+| Accuracy              | Good baseline accuracy through nearest neighbors | Potentially higher with neural network tuning |
+| Accuracy tuning       | Limited to k and embeddings                      | Tunable network architecture and parameters   |
 
 ## Daemon (scheduled classification)
 
 Instead of running classification as a one-off, you can launch a background daemon that periodically classifies and applies new transactions on a cron schedule.
-  
+
 > **Note:** The daemon assumes a pre-trained model is already available in the data directory (`data/tx-classifier-knn`). Be sure to run the training step (`npm start -- --mode train`) at least once before starting the daemon.
 
 1. Install dependencies (node-cron is included):
@@ -193,6 +204,7 @@ Instead of running classification as a one-off, you can launch a background daem
    ```
 
 ### Optional Web UI
+
 You can enable the web UI by either passing `--ui` **or** setting the `HTTP_PORT` environment variable (or `httpPort` in a config file). For example:
 
 ```bash
@@ -248,28 +260,27 @@ All scripts emit structured JSON logs via [pino], including:
 
 Set `LOG_LEVEL` (`info`, `debug`, etc.) to control verbosity.
 
-
 ## Environment Variables
 
 You can set any of these via `.env` or your preferred config file (`config.yaml/json`):
 
-| Variable                  | Description                                                      | Default       |
-|:--------------------------|:-----------------------------------------------------------------|:-------------|
-| `ACTUAL_SERVER_URL`       | URL of the Actual Budget server                                   | —            |
-| `ACTUAL_PASSWORD`         | Password for Actual Budget API                                    | —            |
-| `ACTUAL_BUDGET_ID`        | The Sync ID specified in Actual Budget Advanced Settings          | —            |
-| `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)           | —            |
-| `BUDGET_CACHE_DIR`        | Base directory for Actual Budget download cache (`train/`, `classify/`) | `./budget` |
-| `ENABLE_NODE_VERSION_SHIM`| Shim for Node>=20 guard in `@actual-app/api` (daemon only)        | `false`      |
-| `EMBED_BATCH_SIZE`        | Batch size for text embedding                                      | `512`        |
-| `CLASSIFY_CRON`           | Cron schedule for classification daemon                            | `0 * * * *`  |
-| `CLASSIFY_CRON_TIMEZONE`  | Timezone for classification cron                                   | `UTC`        |
-| `TRAIN_CRON`              | Cron schedule for training daemon                                 | `30 6 * * 1` |
-| `TRAIN_CRON_TIMEZONE`     | Timezone for training cron                                        | `UTC`        |
-| `DISABLE_CRON_SCHEDULING` | Disable cron scheduling (daemon mode only)                         | `false`      |
-| `LOG_LEVEL`               | Logging level (`info`, `debug`, etc.)                              | `info`       |
-| `CLASSIFIER_TYPE`         | Classifier backend to use (`ml` or `tf`)                           | `ml`         |
-| `HTTP_PORT`               | Port for web UI server (daemon mode only)                         | `3000`       |
+| Variable                            | Description                                                             | Default      |
+| :---------------------------------- | :---------------------------------------------------------------------- | :----------- |
+| `ACTUAL_SERVER_URL`                 | URL of the Actual Budget server                                         | —            |
+| `ACTUAL_PASSWORD`                   | Password for Actual Budget API                                          | —            |
+| `ACTUAL_BUDGET_ID`                  | The Sync ID specified in Actual Budget Advanced Settings                | —            |
+| `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)                    | —            |
+| `BUDGET_CACHE_DIR`                  | Base directory for Actual Budget download cache (`train/`, `classify/`) | `./budget`   |
+| `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only)              | `false`      |
+| `EMBED_BATCH_SIZE`                  | Batch size for text embedding                                           | `512`        |
+| `CLASSIFY_CRON`                     | Cron schedule for classification daemon                                 | `0 * * * *`  |
+| `CLASSIFY_CRON_TIMEZONE`            | Timezone for classification cron                                        | `UTC`        |
+| `TRAIN_CRON`                        | Cron schedule for training daemon                                       | `30 6 * * 1` |
+| `TRAIN_CRON_TIMEZONE`               | Timezone for training cron                                              | `UTC`        |
+| `DISABLE_CRON_SCHEDULING`           | Disable cron scheduling (daemon mode only)                              | `false`      |
+| `LOG_LEVEL`                         | Logging level (`info`, `debug`, etc.)                                   | `info`       |
+| `CLASSIFIER_TYPE`                   | Classifier backend to use (`ml` or `tf`)                                | `ml`         |
+| `HTTP_PORT`                         | Port for web UI server (daemon mode only)                               | `3000`       |
 
 ## Release Process
 

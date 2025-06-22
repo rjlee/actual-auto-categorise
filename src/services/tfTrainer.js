@@ -32,11 +32,15 @@ async function trainTF(trainingData, modelDir) {
   // Build model
   const model = tf.sequential();
   model.add(
-    tf.layers.dense({ inputShape: [embeddingDim], units: 128, activation: 'relu' })
+    tf.layers.dense({
+      inputShape: [embeddingDim],
+      units: 128,
+      activation: 'relu',
+    }),
   );
   model.add(tf.layers.dropout({ rate: 0.2 }));
   model.add(
-    tf.layers.dense({ units: categories.length, activation: 'softmax' })
+    tf.layers.dense({ units: categories.length, activation: 'softmax' }),
   );
   model.compile({
     optimizer: tf.train.adam(),
@@ -47,9 +51,14 @@ async function trainTF(trainingData, modelDir) {
   // Training parameters
   const epochs = parseInt(process.env.TF_TRAIN_EPOCHS || '20', 10);
   const trainBatch = parseInt(process.env.TF_TRAIN_BATCH_SIZE || '32', 10);
-  const embedBatch = parseInt(process.env.TF_TRAIN_EMBED_BATCH_SIZE || '512', 10);
+  const embedBatch = parseInt(
+    process.env.TF_TRAIN_EMBED_BATCH_SIZE || '512',
+    10,
+  );
 
-  logger.info(`Starting TF classifier training for ${trainingData.length} samples`);
+  logger.info(
+    `Starting TF classifier training for ${trainingData.length} samples`,
+  );
   for (let epoch = 0; epoch < epochs; epoch++) {
     logger.info(`Epoch ${epoch + 1}/${epochs}`);
     // Shuffle indices
@@ -66,8 +75,11 @@ async function trainTF(trainingData, modelDir) {
         const subIdx = batchIdx.slice(j, j + trainBatch);
         const x = embBatch.slice([j, 0], [subIdx.length, embeddingDim]);
         const y = tf.oneHot(
-          tf.tensor1d(subIdx.map((i) => ysArr[i]), 'int32'),
-          categories.length
+          tf.tensor1d(
+            subIdx.map((i) => ysArr[i]),
+            'int32',
+          ),
+          categories.length,
         );
         await model.trainOnBatch(x, y);
         x.dispose();
@@ -82,7 +94,7 @@ async function trainTF(trainingData, modelDir) {
   await model.save('file://' + modelDir);
   fs.writeFileSync(
     path.join(modelDir, 'classes.json'),
-    JSON.stringify(categories, null, 2)
+    JSON.stringify(categories, null, 2),
   );
   logger.info(`TF classifier model and classes saved to ${modelDir}`);
 }

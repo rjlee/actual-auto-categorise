@@ -56,6 +56,16 @@ npm run lint:fix
 npm run format
 ```
 
+#### Git hooks (pre-commit)
+
+To enable automatic lint-and-format on staged files, install the Husky pre-commit hook:
+
+```bash
+npm run prepare
+```
+
+This creates a Git pre-commit hook that runs lint-staged on your `.js` files.
+
 Configure environment variables in a `.env` file (or export them):
 
 ```
@@ -286,6 +296,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 
 This project uses [semantic-release] to automate versioning, changelog generation, and GitHub releases.
 Simply push Conventional Commits to `main` — the Release workflow will tag a new version, update `CHANGELOG.md`, and publish a GitHub Release automatically.
+Linting (ESLint) and formatting (Prettier) are enforced in CI prior to running tests.
 Docker image builds and publishes are handled by the same CI & Release workflow on pushes to the `release` branch.
 **Ensure** your `GITHUB_TOKEN` (automatically provided in GitHub Actions) has write permission to releases and packages (via the workflow `permissions` field).
 

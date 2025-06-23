@@ -10,6 +10,8 @@ jest.mock('../src/utils', () => ({
   openBudget: jest.fn(async () => {}),
   closeBudget: jest.fn(async () => {}),
 }));
+// Disable UI authentication for tests
+process.env.UI_AUTH_ENABLED = 'false';
 const { startWebUi } = require('../src/web-ui');
 
 describe('Web UI server (E2E)', () => {

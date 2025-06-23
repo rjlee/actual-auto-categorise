@@ -234,6 +234,56 @@ You can also override the port directly on the command line:
 npm start -- --mode daemon --ui --http-port 8080
 ```
 
+#### Web UI authentication
+
+Session-based UI authentication is enabled by default. A signed session cookie is used (
+`cookie-session` with a shared secret). The signing key comes from `SESSION_SECRET` (falling back to `ACTUAL_PASSWORD` if unset).
+
+Set your password and session secret:
+
+```bash
+ACTUAL_PASSWORD=yourBudgetPassword
+SESSION_SECRET=someLongRandomString
+# To disable login form:
+UI_AUTH_ENABLED=false
+```
+
+#### Web UI TLS/HTTPS
+
+To serve the Web UI over HTTPS (recommended in production), set:
+
+```bash
+SSL_KEY=/path/to/privkey.pem    # path to SSL private key
+SSL_CERT=/path/to/fullchain.pem # path to SSL certificate chain
+```
+
+Each run logs its start time and the number of updates applied. Errors are caught and logged without stopping the schedule.
+
+## Security Considerations
+
+> **Web UI security:** The Web UI displays your Actual Budget data in your browser.
+
+- **Session-based UI authentication** (enabled by default): requires a signed session cookie (`cookie-session` with `SESSION_SECRET`).
+  To disable the login form (open access), set `UI_AUTH_ENABLED=false`.
+
+```bash
+ACTUAL_PASSWORD=yourBudgetPassword
+SESSION_SECRET=someLongRandomString
+# To disable login form:
+UI_AUTH_ENABLED=false
+```
+
+- **TLS/HTTPS:** strongly recommended for production. Set your SSL key and cert:
+
+```bash
+SSL_KEY=/path/to/privkey.pem    # path to SSL private key
+SSL_CERT=/path/to/fullchain.pem # path to SSL certificate chain
+```
+
+- **Disable Web UI:** omit `--ui` or remove the `HTTP_PORT` setting (local), or comment out the web service in Docker Compose.
+
+- **Protect budget cache:** your `BUDGET_CACHE_DIR` (`train/`, `classify/`) contains sensitive transaction details; secure it with proper filesystem permissions.
+
 Each run logs its start time and the number of updates applied. Errors are caught and logged without stopping the schedule.
 
 The daemon also prevents overlapping classification runs: if a previous classification run is still in progress when the next schedule fires, it will skip that interval.
@@ -277,7 +327,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | Variable                            | Description                                                             | Default      |
 | :---------------------------------- | :---------------------------------------------------------------------- | :----------- |
 | `ACTUAL_SERVER_URL`                 | URL of the Actual Budget server                                         | —            |
-| `ACTUAL_PASSWORD`                   | Password for Actual Budget API                                          | —            |
+| `ACTUAL_PASSWORD`                   | Password for Actual Budget API (and for Web UI login)                   | —            |
 | `ACTUAL_BUDGET_ID`                  | The Sync ID specified in Actual Budget Advanced Settings                | —            |
 | `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)                    | —            |
 | `BUDGET_CACHE_DIR`                  | Base directory for Actual Budget download cache (`train/`, `classify/`) | `./budget`   |
@@ -291,6 +341,9 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `LOG_LEVEL`                         | Logging level (`info`, `debug`, etc.)                                   | `info`       |
 | `CLASSIFIER_TYPE`                   | Classifier backend to use (`ml` or `tf`)                                | `ml`         |
 | `HTTP_PORT`                         | Port for web UI server (daemon mode only)                               | `3000`       |
+| `UI_AUTH_ENABLED`                   | Enable/disable Web UI login form (true/false)                           | `true`       |
+| `SSL_KEY`                           | Path to SSL private key for HTTPS Web UI                                | —            |
+| `SSL_CERT`                          | Path to SSL certificate chain for HTTPS Web UI                          | —            |
 
 ## Release Process
 

@@ -1,0 +1,32 @@
+<%- include('partials/header', { title: 'Actual Auto Categorise' }) %>
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">Actual Auto Categorise</h1>
+    <div class="d-flex justify-content-center gap-3">
+      <button id="trainBtn" class="btn btn-primary btn-lg">Train</button>
+      <button id="classifyBtn" class="btn btn-success btn-lg">Classify</button>
+      <% if (uiAuthEnabled) { %>
+        <form method="POST" action="/logout" class="m-0">
+          <button type="submit" class="btn btn-warning btn-lg">Logout</button>
+        </form>
+      <% } %>
+    </div>
+    <div id="status" class="mt-4 text-center"></div>
+  </div>
+  <script>
+    const statusEl = document.getElementById('status');
+    document.getElementById('trainBtn').onclick = () => {
+      statusEl.textContent = 'Training started...';
+      fetch('/train', { method: 'POST' })
+        .then(r => r.json())
+        .then(j => statusEl.textContent = j.message || JSON.stringify(j))
+        .catch(e => statusEl.textContent = 'Error: ' + e);
+    };
+    document.getElementById('classifyBtn').onclick = () => {
+      statusEl.textContent = 'Classification started...';
+      fetch('/classify', { method: 'POST' })
+        .then(r => r.json())
+        .then(j => statusEl.textContent = j.message || JSON.stringify(j))
+        .catch(e => statusEl.textContent = 'Error: ' + e);
+    };
+  </script>
+<%- include('partials/footer') %>

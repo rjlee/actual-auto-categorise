@@ -62,7 +62,7 @@
       "prettier --write"
     ],
     "src/views/**/*.ejs": [
-      "ejs-lint"
+      "npx --no-install ejs-lint"
     ]
   }
 }

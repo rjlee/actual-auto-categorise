@@ -1,3 +1,16 @@
+# [1.4.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.3.0...v1.4.0) (2025-06-23)
+
+
+### Bug Fixes
+
+* update ejs-lint command to use npx for better compatibility ([a839413](https://github.com/rjlee/actual-auto-categorise/commit/a839413ebedaef07ee104aff8c75ae078897661c))
+* update lint:ejs command to use npx for better compatibility ([248bdf5](https://github.com/rjlee/actual-auto-categorise/commit/248bdf5f49249ec16d2217e12daf887e1fcc63ae))
+
+
+### Features
+
+* add EJS templating for web UI with authentication support ([85ae56b](https://github.com/rjlee/actual-auto-categorise/commit/85ae56bf27abb87ba116788032534b0aff43742c))
+
 # [1.3.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.2.1...v1.3.0) (2025-06-22)
 
 ### Features

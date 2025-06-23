@@ -12,7 +12,7 @@
     "test": "jest --runInBand",
     "lint": "eslint --ext .js --max-warnings=0 . && npm run lint:ejs",
     "lint:fix": "eslint --fix --ext .js .",
-    "lint:ejs": "ejs-lint \"src/views/**/*.ejs\"",
+    "lint:ejs": "npx --no-install ejs-lint \"src/views/**/*.ejs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky install"

@@ -33,6 +33,22 @@ try {
 } catch {
   // ignore if esm entry is unavailable (e.g. under Jest)
 }
+// Monkey-patch the API bundle so the raw error is logged via console.error
+// instead of being swallowed by console.log in the throw expression.
+try {
+  const fs = require('fs');
+  const bundlePath = require.resolve('@actual-app/api/dist/app/bundle.api.js');
+  let bundleCode = fs.readFileSync(bundlePath, 'utf8');
+  const before =
+    'throw console.log("Full error details", result.error), Error((0, _shared_errors__WEBPACK_IMPORTED_MODULE_2__.getDownloadError)(result.error));';
+  const after =
+    'console.error("Full error details", result.error);\n throw Error((0, _shared_errors__WEBPACK_IMPORTED_MODULE_2__.getDownloadError)(result.error));';
+  if (bundleCode.includes(before)) {
+    fs.writeFileSync(bundlePath, bundleCode.replace(before, after), 'utf8');
+  }
+} catch {
+  // best-effort; skip if unable to patch
+}
 const api = require('@actual-app/api');
 // Track whether budget has been downloaded in this process
 let hasDownloadedBudget = false;

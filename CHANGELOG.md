@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.7.1...v1.8.0) (2025-06-27)
+
+
+### Bug Fixes
+
+* handle potential absence of ESM i18next during initialization ([402d1df](https://github.com/rjlee/actual-auto-categorise/commit/402d1dfc8cba80928987479ac07f758e013f5495))
+
+
+### Features
+
+* initialize i18next for ESM build to ensure translation keys fall through ([13bd001](https://github.com/rjlee/actual-auto-categorise/commit/13bd001592dda98048ee02f5fa98a02d46c1f1ba))
+
 ## [1.7.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.7.0...v1.7.1) (2025-06-27)
 
 

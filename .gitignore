@@ -1,6 +1,9 @@
 node_modules/
 actual-data/
-data/
+/data/**
+!/data/.gitignore
+!/data/.gitkeep
+!/data/budget/
 resources/
 .env
 budget/

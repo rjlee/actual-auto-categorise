@@ -19,15 +19,20 @@ i18next
 
 // Also initialize the copy of i18next inside the Actual API bundle (ESM build)
 // so that its t() calls fall through to the literal English string.
-const esmI18next = require('i18next/dist/esm/i18next.js');
-esmI18next.init({
-  initImmediate: false,
-  lng: process.env.LANG || 'en',
-  fallbackLng: 'en',
-  returnNull: false,
-  returnEmptyString: false,
-  parseMissingKeyHandler: (key) => key,
-});
+let esmI18next;
+try {
+  esmI18next = require('i18next/dist/esm/i18next.js');
+  esmI18next.init({
+    initImmediate: false,
+    lng: process.env.LANG || 'en',
+    fallbackLng: 'en',
+    returnNull: false,
+    returnEmptyString: false,
+    parseMissingKeyHandler: (key) => key,
+  });
+} catch {
+  // ignore if esm entry is unavailable (e.g. under Jest)
+}
 const api = require('@actual-app/api');
 // Track whether budget has been downloaded in this process
 let hasDownloadedBudget = false;

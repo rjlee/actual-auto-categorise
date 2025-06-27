@@ -4,6 +4,8 @@ const i18next = require('i18next');
 // Ensure all translation keys fall through to their literal English text
 i18next
   .init({
+    // Initialize synchronously so missing-key handler is in effect immediately
+    initImmediate: false,
     lng: process.env.LANG || 'en',
     fallbackLng: 'en',
     returnNull: false,

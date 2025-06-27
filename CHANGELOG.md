@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.5.0...v1.5.1) (2025-06-27)
+
+
+### Bug Fixes
+
+* update environment variables and paths for budget cache consistency ([dbb52e7](https://github.com/rjlee/actual-auto-categorise/commit/dbb52e7ae60535700e66d5800587c01298bea862))
+
 # [1.5.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.4.0...v1.5.0) (2025-06-27)
 
 

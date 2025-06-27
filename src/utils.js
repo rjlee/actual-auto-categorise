@@ -1,30 +1,14 @@
 require('dotenv').config();
-const path = require('path');
 const i18next = require('i18next');
-const FsBackend = require('i18next-fs-backend');
 
-// Initialize i18next so API error messages are loaded from the Actual locales
+// Ensure all translation keys fall through to their literal English text
 i18next
-  .use(FsBackend)
   .init({
     lng: process.env.LANG || 'en',
     fallbackLng: 'en',
-    ns: ['translation'],
-    defaultNS: 'translation',
-    backend: {
-      loadPath: path.join(
-        __dirname,
-        '..',
-        'node_modules',
-        '@actual-app',
-        'api',
-        'dist',
-        'app',
-        'locales',
-        '{{lng}}',
-        '{{ns}}.json',
-      ),
-    },
+    returnNull: false,
+    returnEmptyString: false,
+    parseMissingKeyHandler: (key) => key,
   })
   .catch((err) => {
     console.error('i18next initialization failed:', err);

@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.0...v1.8.1) (2025-06-27)
+
+
+### Bug Fixes
+
+* enhance error logging in API bundle by replacing console.log with console.error ([8d574e9](https://github.com/rjlee/actual-auto-categorise/commit/8d574e90975ca8716f836b9ed6b1a75d4441535c))
+
 # [1.8.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.7.1...v1.8.0) (2025-06-27)
 
 

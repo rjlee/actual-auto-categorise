@@ -39,13 +39,12 @@ try {
   const fs = require('fs');
   const bundlePath = require.resolve('@actual-app/api/dist/app/bundle.api.js');
   let bundleCode = fs.readFileSync(bundlePath, 'utf8');
-  const before =
-    'throw console.log("Full error details", result.error), Error((0, _shared_errors__WEBPACK_IMPORTED_MODULE_2__.getDownloadError)(result.error));';
+  const beforeRegex =
+    /throw console\.log\(["']Full error details["'], result\.error\),\s*Error\(\(0, _shared_errors__WEBPACK_IMPORTED_MODULE_2__\.getDownloadError\)\(result\.error\)\);/g;
   const after =
     'console.error("Full error details", result.error);\n throw Error((0, _shared_errors__WEBPACK_IMPORTED_MODULE_2__.getDownloadError)(result.error));';
-  if (bundleCode.includes(before)) {
-    fs.writeFileSync(bundlePath, bundleCode.replace(before, after), 'utf8');
-  }
+  bundleCode = bundleCode.replace(beforeRegex, after);
+  fs.writeFileSync(bundlePath, bundleCode, 'utf8');
 } catch {
   // best-effort; skip if unable to patch
 }

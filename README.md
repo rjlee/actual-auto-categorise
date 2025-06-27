@@ -16,7 +16,7 @@ Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL
 docker build -t actual-auto-categorise .
 
 # Prepare required host dirs for model & budget data
-mkdir -p data budget
+mkdir -p data data/budget
 
 # Run using your .env file
 docker run --rm --env-file .env actual-auto-categorise
@@ -71,9 +71,9 @@ Configure environment variables in a `.env` file (or export them):
 ```
 ACTUAL_SERVER_URL=http://localhost:5006
 ACTUAL_PASSWORD=your_actual_password
-ACTUAL_BUDGET_ID=your_budget_id
-# Optional: path to store local budget data (default: ./budget)
-BUDGET_CACHE_DIR=./budget
+ACTUAL_SYNC_ID=your_sync_id
+# Optional: path to store local budget data (default: ./data/budget)
+BUDGET_CACHE_DIR=./data/budget
 ```
 
 > **Security note:** If connecting to a self-signed Actual Budget instance, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in your environment. This disables certificate verification and makes TLS/HTTPS requests insecure.
@@ -116,7 +116,7 @@ npm start -- --mode train
 CLASSIFIER_TYPE=tf npm start -- --mode train
 ```
 
-The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>/train` (e.g. `./budget/train`).
+The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./budget`).
 On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
 
 This will generate training data and save the model to `data/tx-classifier-knn`.
@@ -132,7 +132,7 @@ Retrieve new (unreconciled) transactions, classify them using the trained model,
 npm start -- --mode classify [--dry-run] [--verbose]
 ```
 
-The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>/classify` (e.g. `./budget/classify`).
+The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./budget`).
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.
@@ -324,26 +324,26 @@ Set `LOG_LEVEL` (`info`, `debug`, etc.) to control verbosity.
 
 You can set any of these via `.env` or your preferred config file (`config.yaml/json`):
 
-| Variable                            | Description                                                             | Default      |
-| :---------------------------------- | :---------------------------------------------------------------------- | :----------- |
-| `ACTUAL_SERVER_URL`                 | URL of the Actual Budget server                                         | —            |
-| `ACTUAL_PASSWORD`                   | Password for Actual Budget API (and for Web UI login)                   | —            |
-| `ACTUAL_BUDGET_ID`                  | The Sync ID specified in Actual Budget Advanced Settings                | —            |
-| `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)                    | —            |
-| `BUDGET_CACHE_DIR`                  | Base directory for Actual Budget download cache (`train/`, `classify/`) | `./budget`   |
-| `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only)              | `false`      |
-| `EMBED_BATCH_SIZE`                  | Batch size for text embedding                                           | `512`        |
-| `CLASSIFY_CRON`                     | Cron schedule for classification daemon                                 | `0 * * * *`  |
-| `CLASSIFY_CRON_TIMEZONE`            | Timezone for classification cron                                        | `UTC`        |
-| `TRAIN_CRON`                        | Cron schedule for training daemon                                       | `30 6 * * 1` |
-| `TRAIN_CRON_TIMEZONE`               | Timezone for training cron                                              | `UTC`        |
-| `DISABLE_CRON_SCHEDULING`           | Disable cron scheduling (daemon mode only)                              | `false`      |
-| `LOG_LEVEL`                         | Logging level (`info`, `debug`, etc.)                                   | `info`       |
-| `CLASSIFIER_TYPE`                   | Classifier backend to use (`ml` or `tf`)                                | `ml`         |
-| `HTTP_PORT`                         | Port for web UI server (daemon mode only)                               | `3000`       |
-| `UI_AUTH_ENABLED`                   | Enable/disable Web UI login form (true/false)                           | `true`       |
-| `SSL_KEY`                           | Path to SSL private key for HTTPS Web UI                                | —            |
-| `SSL_CERT`                          | Path to SSL certificate chain for HTTPS Web UI                          | —            |
+| Variable                            | Description                                                | Default         |
+| :---------------------------------- | :--------------------------------------------------------- | :-------------- |
+| `ACTUAL_SERVER_URL`                 | URL of the Actual Budget server                            | —               |
+| `ACTUAL_PASSWORD`                   | Password for Actual Budget API (and for Web UI login)      | —               |
+| `ACTUAL_SYNC_ID`                    | The Sync ID specified in Actual Budget Advanced Settings   | —               |
+| `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)       | —               |
+| `BUDGET_CACHE_DIR`                  | Base directory for Actual Budget download cache            | `./data/budget` |
+| `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only) | `false`         |
+| `EMBED_BATCH_SIZE`                  | Batch size for text embedding                              | `512`           |
+| `CLASSIFY_CRON`                     | Cron schedule for classification daemon                    | `0 * * * *`     |
+| `CLASSIFY_CRON_TIMEZONE`            | Timezone for classification cron                           | `UTC`           |
+| `TRAIN_CRON`                        | Cron schedule for training daemon                          | `30 6 * * 1`    |
+| `TRAIN_CRON_TIMEZONE`               | Timezone for training cron                                 | `UTC`           |
+| `DISABLE_CRON_SCHEDULING`           | Disable cron scheduling (daemon mode only)                 | `false`         |
+| `LOG_LEVEL`                         | Logging level (`info`, `debug`, etc.)                      | `info`          |
+| `CLASSIFIER_TYPE`                   | Classifier backend to use (`ml` or `tf`)                   | `ml`            |
+| `HTTP_PORT`                         | Port for web UI server (daemon mode only)                  | `3000`          |
+| `UI_AUTH_ENABLED`                   | Enable/disable Web UI login form (true/false)              | `true`          |
+| `SSL_KEY`                           | Path to SSL private key for HTTPS Web UI                   | —               |
+| `SSL_CERT`                          | Path to SSL certificate chain for HTTPS Web UI             | —               |
 
 ## Release Process
 

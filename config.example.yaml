@@ -1,8 +1,8 @@
 # Sample YAML configuration file.
 # Copy to config.yaml or config.yml in the project root and adjust settings as needed.
 # config.yaml example
-# Base directory for budget data (train and classify subdirectories created here)
-dataDir: './budget'
+# Base directory for budget data (used for both training and classification)
+dataDir: './data/budget'
 # Classification schedule (once an hour on the hour)
 CLASSIFY_CRON: '0 * * * *'
 CLASSIFY_CRON_TIMEZONE: UTC

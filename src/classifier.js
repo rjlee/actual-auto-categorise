@@ -37,8 +37,6 @@ async function runClassification({
     : { info: () => {}, debug: () => {}, error: () => {} };
   const outDir = path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-  // Capture classification cache directory (budget/classify)
-  const cacheDir = process.env.BUDGET_CACHE_DIR;
 
   // Open budget (abort this run on failure)
   try {
@@ -122,17 +120,6 @@ async function runClassification({
     return appliedCount;
   } finally {
     await closeBudget();
-    // Clean up only this classification run's cache files
-    if (cacheDir && fs.existsSync(cacheDir)) {
-      for (const item of fs.readdirSync(cacheDir)) {
-        try {
-          fs.rmSync(path.join(cacheDir, item), {
-            recursive: true,
-            force: true,
-          });
-        } catch (_) {}
-      }
-    }
   }
 }
 

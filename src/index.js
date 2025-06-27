@@ -4,7 +4,6 @@ require('./suppress');
 require('dotenv').config();
 
 const fs = require('fs');
-const path = require('path');
 const config = require('./config');
 const logger = require('./logger');
 // cron scheduling and UI moved to src/daemon.js
@@ -53,19 +52,13 @@ async function main(args = process.argv.slice(2)) {
     .help().argv;
   const { mode, dryRun, verbose, ui, httpPort } = argv;
   const useStructuredLogging = mode === 'daemon';
-  // Use distinct budget cache directory per mode (train/classify)
-  const baseDataDir =
-    config.dataDir || process.env.BUDGET_CACHE_DIR || './budget';
-  const modeDataDir = path.join(baseDataDir, mode);
-  // Ensure the mode-specific budget cache directory exists
-  if (!fs.existsSync(modeDataDir))
-    fs.mkdirSync(modeDataDir, { recursive: true });
-  process.env.BUDGET_CACHE_DIR = modeDataDir;
+  // Use single shared budget cache directory for both train & classify
+  const dataDir =
+    config.dataDir || process.env.BUDGET_CACHE_DIR || './data/budget';
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  process.env.BUDGET_CACHE_DIR = dataDir;
   if (useStructuredLogging) {
-    logger.info(
-      { mode, modeDataDir },
-      'Using mode-specific budget data directory',
-    );
+    logger.info({ dataDir }, 'Using shared budget cache directory');
   }
   switch (mode) {
     case 'train':

@@ -5,10 +5,15 @@ jest.mock('@actual-app/api', () => ({
   downloadBudget: jest.fn(),
   shutdown: jest.fn(),
   resetBudgetCache: jest.fn(),
+  sync: jest.fn(),
 }));
 const api = require('@actual-app/api');
 
-const { openBudget, closeBudget } = require('../src/utils');
+const {
+  openBudget,
+  closeBudget,
+  __resetBudgetDownloadFlag,
+} = require('../src/utils');
 const logger = require('../src/logger');
 
 describe('openBudget utility', () => {
@@ -17,6 +22,7 @@ describe('openBudget utility', () => {
     jest.clearAllMocks();
     process.env = { ...envBackup };
     process.env.DISABLE_IMPORT_BACKUPS = 'false';
+    __resetBudgetDownloadFlag();
     // Suppress expected logger output during openBudget tests
     jest.spyOn(logger, 'warn').mockImplementation(() => {});
     jest.spyOn(logger, 'info').mockImplementation(() => {});
@@ -28,16 +34,16 @@ describe('openBudget utility', () => {
   test('throws if required env vars are missing', async () => {
     delete process.env.ACTUAL_SERVER_URL;
     delete process.env.ACTUAL_PASSWORD;
-    delete process.env.ACTUAL_BUDGET_ID;
+    delete process.env.ACTUAL_SYNC_ID;
     await expect(openBudget()).rejects.toThrow(
-      /Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_BUDGET_ID/,
+      /Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_SYNC_ID/,
     );
   });
 
   test('calls init and falls back when runImport fails', async () => {
     process.env.ACTUAL_SERVER_URL = 'u';
     process.env.ACTUAL_PASSWORD = 'p';
-    process.env.ACTUAL_BUDGET_ID = 'b';
+    process.env.ACTUAL_SYNC_ID = 'b';
     api.init.mockResolvedValue();
     api.runImport.mockRejectedValue(new Error('fail'));
     api.downloadBudget.mockResolvedValue();
@@ -55,7 +61,7 @@ describe('openBudget utility', () => {
   test('calls runImport on success and does not fallback', async () => {
     process.env.ACTUAL_SERVER_URL = 'u';
     process.env.ACTUAL_PASSWORD = 'p';
-    process.env.ACTUAL_BUDGET_ID = 'b';
+    process.env.ACTUAL_SYNC_ID = 'b';
     api.init.mockResolvedValue();
     api.runImport.mockImplementation(async (_tag, fn) => fn());
     api.downloadBudget.mockResolvedValue();
@@ -70,7 +76,7 @@ describe('openBudget utility', () => {
   test('skips import backup when DISABLE_IMPORT_BACKUPS is true', async () => {
     process.env.ACTUAL_SERVER_URL = 'u';
     process.env.ACTUAL_PASSWORD = 'p';
-    process.env.ACTUAL_BUDGET_ID = 'b';
+    process.env.ACTUAL_SYNC_ID = 'b';
     process.env.DISABLE_IMPORT_BACKUPS = 'true';
     api.init.mockResolvedValue();
     api.runImport.mockResolvedValue();

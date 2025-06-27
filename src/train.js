@@ -27,8 +27,6 @@ async function runTraining({ verbose = false } = {}) {
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   // Open budget (abort this run on failure)
-  // Capture training cache directory (budget/train)
-  const cacheDir = process.env.BUDGET_CACHE_DIR;
   try {
     log.info('Opening budget');
     await openBudget();
@@ -72,17 +70,6 @@ async function runTraining({ verbose = false } = {}) {
     const modelDir = path.join(outDir, 'tx-classifier-tf');
     await trainTF(trainingData, modelDir);
     await closeBudget();
-    // Clean up training cache directory
-    if (cacheDir && fs.existsSync(cacheDir)) {
-      for (const item of fs.readdirSync(cacheDir)) {
-        try {
-          fs.rmSync(path.join(cacheDir, item), {
-            recursive: true,
-            force: true,
-          });
-        } catch (_) {}
-      }
-    }
     return;
   }
   try {
@@ -185,17 +172,6 @@ async function runTraining({ verbose = false } = {}) {
     return;
   } finally {
     await closeBudget();
-    // Clean up only this training run's cache files
-    if (cacheDir && fs.existsSync(cacheDir)) {
-      for (const item of fs.readdirSync(cacheDir)) {
-        try {
-          fs.rmSync(path.join(cacheDir, item), {
-            recursive: true,
-            force: true,
-          });
-        } catch (_) {}
-      }
-    }
   }
 }
 

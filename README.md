@@ -213,6 +213,8 @@ Instead of running classification as a one-off, you can launch a background daem
    npm start -- --mode daemon
    ```
 
+   On startup, the daemon will perform an initial budget download & sync before running any scheduled tasks.
+
 ### Optional Web UI
 
 You can enable the web UI by either passing `--ui` **or** setting the `HTTP_PORT` environment variable (or `httpPort` in a config file). For example:

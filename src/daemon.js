@@ -6,6 +6,7 @@ const { runTraining } = require('./train');
 const { runClassification } = require('./classifier');
 
 const { startWebUi } = require('./web-ui');
+const { openBudget, closeBudget } = require('./utils');
 
 // Set up the classification cron job
 function scheduleClassification(verbose) {
@@ -115,6 +116,17 @@ function scheduleTraining(verbose) {
 }
 
 async function runDaemon({ verbose, ui, httpPort }) {
+  // Perform an initial budget download & sync when the daemon starts
+  logger.info('Performing initial budget sync');
+  try {
+    await openBudget();
+    logger.info('Initial budget sync complete');
+  } catch (err) {
+    logger.error({ err }, 'Initial budget sync failed');
+  } finally {
+    await closeBudget();
+  }
+
   const explicitPort =
     typeof config.httpPort !== 'undefined' ||
     typeof config.HTTP_PORT !== 'undefined' ||

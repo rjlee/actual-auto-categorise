@@ -15,8 +15,8 @@ Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL
 # Build the Docker image
 docker build -t actual-auto-categorise .
 
-# Prepare required host dirs for model & budget data
-mkdir -p data data/budget
+# Prepare required host dir for data (model & budget)
+mkdir -p data/budget
 
 # Run using your .env file
 docker run --rm --env-file .env actual-auto-categorise
@@ -116,7 +116,7 @@ npm start -- --mode train
 CLASSIFIER_TYPE=tf npm start -- --mode train
 ```
 
-The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./budget`).
+The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./data/budget`).
 On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
 
 This will generate training data and save the model to `data/tx-classifier-knn`.
@@ -132,7 +132,7 @@ Retrieve new (unreconciled) transactions, classify them using the trained model,
 npm start -- --mode classify [--dry-run] [--verbose]
 ```
 
-The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./budget`).
+The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./data/budget`).
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.

@@ -9,13 +9,10 @@ services:
       - '${HTTP_PORT:-3000}:${HTTP_PORT:-3000}'
     restart: unless-stopped
     volumes:
-      # Persist model and budget data (host directory bind mounts)
+      # Persist data (model, budget, etc.) in the data directory
       - type: bind
         source: ./data
         target: /app/data
-      - type: bind
-        source: ./budget
-        target: /app/budget
     logging:
       driver: json-file
       options:

@@ -15,7 +15,7 @@ const Utils = {
         'Please set ACTUAL_SERVER_URL, ACTUAL_PASSWORD, and ACTUAL_SYNC_ID environment variables',
       );
     }
-    const dataDir = process.env.BUDGET_CACHE_DIR || './budget';
+    const dataDir = process.env.BUDGET_CACHE_DIR || './data/budget';
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
     logger.info('Connecting to Actual API...');

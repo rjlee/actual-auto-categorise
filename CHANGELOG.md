@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.7.0...v1.7.1) (2025-06-27)
+
+
+### Bug Fixes
+
+* ensure synchronous initialization for i18next missing-key handler ([4dc9a4c](https://github.com/rjlee/actual-auto-categorise/commit/4dc9a4ca5b8a47e96c9177cdf61b18c83909fb8d))
+
 # [1.7.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.6.0...v1.7.0) (2025-06-27)
 
 

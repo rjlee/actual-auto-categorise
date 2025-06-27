@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.4.0...v1.5.0) (2025-06-27)
+
+
+### Bug Fixes
+
+* update .gitignore files for improved directory exclusions and consistency ([014066c](https://github.com/rjlee/actual-auto-categorise/commit/014066c2df42564bedbe728f534af1812c93c779))
+
+
+### Features
+
+* add .gitignore and .gitkeep files for data and budget directories ([92702d4](https://github.com/rjlee/actual-auto-categorise/commit/92702d4cb3843af3befbd9670cdd46dba7f23328))
+
 # [1.4.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.3.0...v1.4.0) (2025-06-23)
 
 

@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.5.1...v1.6.0) (2025-06-27)
+
+
+### Features
+
+* add initial budget download and sync on daemon startup ([04657a3](https://github.com/rjlee/actual-auto-categorise/commit/04657a39e7d10a7c77ed359a4d86f03bd15f7e85))
+
 ## [1.5.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.5.0...v1.5.1) (2025-06-27)
 
 

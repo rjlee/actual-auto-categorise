@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.6.0...v1.7.0) (2025-06-27)
+
+
+### Features
+
+* add i18next and i18next-fs-backend for localization support ([a1167a8](https://github.com/rjlee/actual-auto-categorise/commit/a1167a8fda50852281bff98100d5e1fb41b37a72))
+
 # [1.6.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.5.1...v1.6.0) (2025-06-27)
 
 

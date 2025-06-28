@@ -1,6 +1,8 @@
 /**
  * Basic E2E pipeline test: train followed by classification using mocked API and ML.
  */
+// Ensure no CLASSIFIER_TYPE env var influences training branch
+delete process.env.CLASSIFIER_TYPE;
 // Stub Actual API
 jest.mock('@actual-app/api', () => {
   const getTransactions = jest

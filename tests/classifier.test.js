@@ -33,6 +33,7 @@ const { runClassification } = require('../src/classifier');
 
 describe('runClassification', () => {
   beforeEach(() => {
+    delete process.env.CLASSIFIER_TYPE;
     jest.resetAllMocks();
     // Provide defaults for payees/categories and ML classifier
     getPayees.mockResolvedValue([]);

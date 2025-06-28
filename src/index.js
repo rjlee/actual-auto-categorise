@@ -6,6 +6,13 @@ require('dotenv').config();
 const fs = require('fs');
 const config = require('./config');
 const logger = require('./logger');
+// Prevent daemon exit on unexpected errors
+process.on('uncaughtException', (err) => {
+  logger.warn({ err }, 'Uncaught exception, ignoring');
+});
+process.on('unhandledRejection', (err) => {
+  logger.warn({ err }, 'Unhandled promise rejection, ignoring');
+});
 // cron scheduling and UI moved to src/daemon.js
 
 // Core functions

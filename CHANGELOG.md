@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.2...v1.8.3) (2025-06-28)
+
+
+### Bug Fixes
+
+* update Node.js version requirements and Dockerfile references to use Node 24 ([47dd114](https://github.com/rjlee/actual-auto-categorise/commit/47dd114de75a2e53daf6f058d4dadc37f8eb64fb))
+
 ## [1.8.2](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.1...v1.8.2) (2025-06-27)
 
 

@@ -18,7 +18,7 @@
     "prepare": "husky install"
   },
   "engines": {
-    "node": ">=20 <23"
+    "node": ">=20"
   },
   "dependencies": {
     "@actual-app/api": "^25.6.1",

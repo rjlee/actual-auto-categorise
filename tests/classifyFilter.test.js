@@ -1,3 +1,6 @@
+const path = require('path');
+// Redirect classification output to a test-specific data folder
+process.env.BUDGET_CACHE_DIR = path.resolve(__dirname, '.data');
 // Mock budget utils
 jest.mock('../src/utils', () => ({
   openBudget: jest.fn(),

@@ -3,6 +3,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+// Redirect training output to a test-specific data folder
+process.env.BUDGET_CACHE_DIR = path.resolve(__dirname, '.data');
 
 jest.mock('@actual-app/api', () => ({
   getAccounts: jest.fn(async () => [{ id: 'acct1' }]),
@@ -25,16 +27,24 @@ jest.mock('../src/utils', () => ({
 const { runTraining } = require('../src/train');
 
 describe('Training description filter', () => {
-  const dataDir = path.resolve(__dirname, '../data');
+  const dataDir = path.resolve(__dirname, '.data');
 
   beforeEach(() => {
-    if (fs.existsSync(dataDir))
-      fs.rmSync(dataDir, { recursive: true, force: true });
+    if (fs.existsSync(dataDir)) {
+      for (const name of fs.readdirSync(dataDir)) {
+        if (name.startsWith('.')) continue;
+        fs.rmSync(path.join(dataDir, name), { recursive: true, force: true });
+      }
+    }
   });
 
   afterEach(() => {
-    if (fs.existsSync(dataDir))
-      fs.rmSync(dataDir, { recursive: true, force: true });
+    if (fs.existsSync(dataDir)) {
+      for (const name of fs.readdirSync(dataDir)) {
+        if (name.startsWith('.')) continue;
+        fs.rmSync(path.join(dataDir, name), { recursive: true, force: true });
+      }
+    }
   });
 
   it('skips entries with empty description', async () => {

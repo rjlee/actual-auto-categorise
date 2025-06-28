@@ -35,7 +35,9 @@ async function runClassification({
   const log = useLogger
     ? logger
     : { info: () => {}, debug: () => {}, error: () => {} };
-  const outDir = path.resolve(__dirname, '../data');
+  const outDir = process.env.BUDGET_CACHE_DIR
+    ? path.resolve(process.env.BUDGET_CACHE_DIR)
+    : path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   // Open budget (abort this run on failure)

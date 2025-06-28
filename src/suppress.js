@@ -7,6 +7,15 @@ if (process.env.ENABLE_NODE_VERSION_SHIM === 'true') {
   Object.defineProperty(process.versions, 'node', { value: '20.0.0' });
 }
 
+// Polyfill util.isNullOrUndefined and util.isArray removed in Node.js v24 for tfjs compatibility
+const util = require('util');
+if (typeof util.isNullOrUndefined !== 'function') {
+  util.isNullOrUndefined = (val) => val === null || val === undefined;
+}
+if (typeof util.isArray !== 'function') {
+  util.isArray = Array.isArray;
+}
+
 // Shared suppression patterns:
 const START_PATTERNS = [
   'Loading fresh spreadsheet',

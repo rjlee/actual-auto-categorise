@@ -1,3 +1,10 @@
+## [1.8.4](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.3...v1.8.4) (2025-06-28)
+
+
+### Bug Fixes
+
+* improve error handling and logging in budget operations; prevent daemon exit on uncaught exceptions ([4b38f7a](https://github.com/rjlee/actual-auto-categorise/commit/4b38f7aab53f22d39593e81ac2c53195f6d55ab2))
+
 ## [1.8.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.2...v1.8.3) (2025-06-28)
 
 

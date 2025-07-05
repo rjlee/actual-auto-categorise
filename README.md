@@ -9,7 +9,7 @@ This application trains a machine learning model on your categorized transaction
 
 ## Quick start with Docker
 
-Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL, ACTUAL_PASSWORD, ACTUAL_BUDGET_ID).
+Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL, ACTUAL_PASSWORD, ACTUAL_SYNC_ID).
 
 ```bash
 # Build the Docker image
@@ -289,9 +289,9 @@ SSL_KEY=/path/to/privkey.pem    # path to SSL private key
 SSL_CERT=/path/to/fullchain.pem # path to SSL certificate chain
 ```
 
-- **Disable Web UI:** omit `--ui` or remove the `HTTP_PORT` setting (local), or comment out the web service in Docker Compose.
+**Disable Web UI:** omit `--ui` or remove the `HTTP_PORT` setting (local), or comment out the web service in Docker Compose.
 
-- **Protect budget cache:** your `BUDGET_CACHE_DIR` (`train/`, `classify/`) contains sensitive transaction details; secure it with proper filesystem permissions.
+- **Protect budget cache:** your `BUDGET_DIR` (or legacy `BUDGET_CACHE_DIR`) contains sensitive transaction details; secure it with proper filesystem permissions.
 
 Each run logs its start time and the number of updates applied. Errors are caught and logged without stopping the schedule.
 
@@ -339,7 +339,9 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `ACTUAL_PASSWORD`                   | Password for Actual Budget API (and for Web UI login)      | —               |
 | `ACTUAL_SYNC_ID`                    | The Sync ID specified in Actual Budget Advanced Settings   | —               |
 | `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)       | —               |
-| `BUDGET_CACHE_DIR`                  | Base directory for Actual Budget download cache            | `./data/budget` |
+| `DATA_DIR`                          | Base directory for training data and model outputs         | `./data`        |
+| `BUDGET_DIR`                        | Base directory for Actual Budget download cache            | `./data/budget` |
+| `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR`                       | `./data/budget` |
 | `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only) | `false`         |
 | `EMBED_BATCH_SIZE`                  | Batch size for text embedding                              | `512`           |
 | `CLASSIFY_CRON`                     | Cron schedule for classification daemon                    | `0 * * * *`     |

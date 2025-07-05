@@ -4,4 +4,7 @@ data/
 resources/
 budget/
 coverage/
+# Env files
+.env*
+
 CHANGELOG.md

@@ -1,3 +1,10 @@
+## [1.8.6](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.5...v1.8.6) (2025-07-05)
+
+
+### Bug Fixes
+
+* fixed classifier directory ref ([f986076](https://github.com/rjlee/actual-auto-categorise/commit/f98607666fcb422e699f9165de1ecebd53c22640))
+
 ## [1.8.5](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.4...v1.8.5) (2025-07-05)
 
 

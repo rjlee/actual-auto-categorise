@@ -1,3 +1,10 @@
+## [1.8.5](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.4...v1.8.5) (2025-07-05)
+
+
+### Bug Fixes
+
+* update README and configuration files for clarity and accuracy ([08991f2](https://github.com/rjlee/actual-auto-categorise/commit/08991f2489306897a8554862de0cfcfee5657ba9))
+
 ## [1.8.4](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.3...v1.8.4) (2025-06-28)
 
 

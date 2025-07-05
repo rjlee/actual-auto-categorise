@@ -59,13 +59,16 @@ async function main(args = process.argv.slice(2)) {
     .help().argv;
   const { mode, dryRun, verbose, ui, httpPort } = argv;
   const useStructuredLogging = mode === 'daemon';
-  // Use single shared budget cache directory for both train & classify
-  const dataDir =
-    config.dataDir || process.env.BUDGET_CACHE_DIR || './data/budget';
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  process.env.BUDGET_CACHE_DIR = dataDir;
+  // Use separate directories for data and budget cache
+  const budgetDir =
+    config.budgetDir ||
+    process.env.BUDGET_DIR ||
+    process.env.BUDGET_CACHE_DIR ||
+    './data/budget';
+  if (!fs.existsSync(budgetDir)) fs.mkdirSync(budgetDir, { recursive: true });
+  process.env.BUDGET_CACHE_DIR = budgetDir;
   if (useStructuredLogging) {
-    logger.info({ dataDir }, 'Using shared budget cache directory');
+    logger.info({ budgetDir }, 'Using shared budget cache directory');
   }
   switch (mode) {
     case 'train':

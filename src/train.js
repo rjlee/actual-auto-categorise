@@ -23,9 +23,13 @@ const config = require('./config');
  */
 async function runTraining({ verbose = false } = {}) {
   const log = logger;
-  const outDir = process.env.BUDGET_CACHE_DIR
-    ? path.resolve(process.env.BUDGET_CACHE_DIR)
-    : path.resolve(__dirname, '../data');
+  const outDir = config.dataDir
+    ? path.resolve(config.dataDir)
+    : process.env.DATA_DIR
+      ? path.resolve(process.env.DATA_DIR)
+      : process.env.BUDGET_CACHE_DIR
+        ? path.resolve(process.env.BUDGET_CACHE_DIR)
+        : path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   // Open budget (abort this run on failure)

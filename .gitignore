@@ -23,6 +23,9 @@ pnpm-debug.log*
 # Test coverage directory
 coverage/
 
+# Ignore test output directories
+tests/.data/
+
 # Local environment overrides
 .env.local
 .env.*.local

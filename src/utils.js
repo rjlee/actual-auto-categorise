@@ -19,7 +19,8 @@ async function openBudget() {
     );
   }
   try {
-    const dataDir = process.env.BUDGET_CACHE_DIR || './budget';
+    const dataDir =
+      process.env.BUDGET_DIR || process.env.BUDGET_CACHE_DIR || './data/budget';
 
     fs.mkdirSync(dataDir, { recursive: true });
 

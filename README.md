@@ -15,8 +15,8 @@ Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL
 # Build the Docker image
 docker build -t actual-auto-categorise .
 
-# Prepare required host dir for data (model & budget)
-mkdir -p data/budget
+# Prepare required host dirs for data (model & budget)
+mkdir -p data data/budget
 
 # Run using your .env file
 docker run --rm --env-file .env actual-auto-categorise
@@ -72,7 +72,11 @@ Configure environment variables in a `.env` file (or export them):
 ACTUAL_SERVER_URL=http://localhost:5006
 ACTUAL_PASSWORD=your_actual_password
 ACTUAL_SYNC_ID=your_sync_id
-# Optional: path to store local budget data (default: ./data/budget)
+# Optional: path to store local training data and model outputs (default: ./data)
+DATA_DIR=./data
+# Optional: path to store local budget cache (downloaded budget files; default: ./data/budget)
+BUDGET_DIR=./data/budget
+# Legacy alias for BUDGET_DIR (deprecated)
 BUDGET_CACHE_DIR=./data/budget
 ```
 
@@ -82,8 +86,10 @@ You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `c
 
 ```yaml
 # config.yaml example
-# Base directory for budget data (train and classify subdirectories created here)
-dataDir: './budget'
+# Base directory for training data and model outputs (default: ./data)
+dataDir: './data'
+# Base directory for budget data (downloaded budget files; default: ./data/budget)
+budgetDir: './data/budget'
 # Classification schedule (once an hour on the hour)
 CLASSIFY_CRON: '0 * * * *'
 CLASSIFY_CRON_TIMEZONE: UTC
@@ -116,10 +122,10 @@ npm start -- --mode train
 CLASSIFIER_TYPE=tf npm start -- --mode train
 ```
 
-The training run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./data/budget`).
+The training run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`).
 On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
 
-This will generate training data and save the model to `data/tx-classifier-knn`.
+This will generate training data and save the model to `<DATA_DIR>/tx-classifier-knn`.
 
 > **Note:** The training data includes only reconciled transactions that already have a category.
 
@@ -132,7 +138,7 @@ Retrieve new (unreconciled) transactions, classify them using the trained model,
 npm start -- --mode classify [--dry-run] [--verbose]
 ```
 
-The classification run downloads a copy of your budget into `<BUDGET_CACHE_DIR>` (e.g. `./data/budget`).
+The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`).
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.
@@ -154,11 +160,12 @@ Under the hood, this project uses a two-step Embed+KNN approach:
    We use a WASM-backed transformer model (`Xenova/all-MiniLM-L6-v2`) to convert each transaction description into a fixed-length vector. Mean-pooling is applied across token embeddings to produce a single embedding per description.
 
 2. **K-Nearest Neighbors classification**
-   - During training (`npm start -- --mode train`), reconciled transactions with existing categories are embedded and stored in `data/tx-classifier-knn`:
-     - `meta.json` contains the number of neighbors (k), category labels, and embedding dimension.
-     - `embeddings.bin` contains the saved embedding vectors.
-   - At prediction time (`npm start -- --mode classify`), new transaction descriptions are embedded the same way and normalized to unit length. We build an in-memory HNSW index (via `hnswlib-node`) over the training embeddings and perform an exact kNN search using cosine similarity.
-   - The predicted category is chosen by a majority vote among the k nearest neighbors.
+
+- During training (`npm start -- --mode train`), reconciled transactions with existing categories are embedded and stored in `<DATA_DIR>/tx-classifier-knn`:
+  - `meta.json` contains the number of neighbors (k), category labels, and embedding dimension.
+  - `embeddings.bin` contains the saved embedding vectors.
+- At prediction time (`npm start -- --mode classify`), new transaction descriptions are embedded the same way and normalized to unit length. We build an in-memory HNSW index (via `hnswlib-node`) over the training embeddings and perform an exact kNN search using cosine similarity.
+- The predicted category is chosen by a majority vote among the k nearest neighbors.
 
 This approach lets us efficiently classify transactions based on semantic textual similarity, without requiring an external service or GPU.
 
@@ -191,7 +198,7 @@ The TensorFlow.js classifier uses a saved Layers model and the Universal Sentenc
 
 Instead of running classification as a one-off, you can launch a background daemon that periodically classifies and applies new transactions on a cron schedule.
 
-> **Note:** The daemon assumes a pre-trained model is already available in the data directory (`data/tx-classifier-knn`). Be sure to run the training step (`npm start -- --mode train`) at least once before starting the daemon.
+> **Note:** The daemon assumes a pre-trained model is already available in the data directory (`<DATA_DIR>/tx-classifier-knn`). Be sure to run the training step (`npm start -- --mode train`) at least once before starting the daemon.
 
 1. Install dependencies (node-cron is included):
 

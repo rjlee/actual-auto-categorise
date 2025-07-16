@@ -102,6 +102,9 @@ DISABLE_CRON_SCHEDULING: false
 LOG_LEVEL: info
 # Classifier to use: 'ml' for Embed+KNN or 'tf' for TensorFlow.js (default: ml)
 CLASSIFIER_TYPE: ml
+
+# Mark newly categorized transactions as reconciled when true; set to false to disable (default: true)
+AUTO_RECONCILE: true
 ```
 
 A sample YAML config file is provided in `config.example.yaml`. Copy it to `config.yaml` or `config.yml` in the project root and adjust as needed.
@@ -141,7 +144,7 @@ npm start -- --mode classify [--dry-run] [--verbose]
 The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
-> **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.
+> **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories. Newly categorized transactions will also be marked as reconciled by default; to disable this behavior, set `AUTO_RECONCILE=false`.
 
 Options:
 

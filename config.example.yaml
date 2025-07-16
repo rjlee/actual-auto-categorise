@@ -17,3 +17,6 @@ DISABLE_CRON_SCHEDULING: false
 LOG_LEVEL: info
 # Classifier to use: 'ml' for Embed+KNN or 'tf' for TensorFlow.js (default: ml)
 CLASSIFIER_TYPE: ml
+
+# Mark newly categorized transactions as reconciled when true; set to false to disable (default: true)
+AUTO_RECONCILE: true

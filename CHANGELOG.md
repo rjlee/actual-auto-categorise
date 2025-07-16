@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.6...v1.9.0) (2025-07-16)
+
+
+### Features
+
+* add AUTO_RECONCILE option to mark categorized transactions as reconciled ([0405467](https://github.com/rjlee/actual-auto-categorise/commit/040546776d86bfcd5003b0bc1151f82affc486d4))
+
 ## [1.8.6](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.5...v1.8.6) (2025-07-05)
 
 

@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.9.0...v1.10.0) (2025-07-16)
+
+
+### Features
+
+* add AUTO_RECONCILE option to configuration files ([50720b9](https://github.com/rjlee/actual-auto-categorise/commit/50720b9ce208d239624e81978ee9fef641c24bcd))
+
 # [1.9.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.8.6...v1.9.0) (2025-07-16)
 
 

@@ -342,7 +342,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `DATA_DIR`                          | Base directory for training data and model outputs                                          | `./data`        |
 | `BUDGET_DIR`                        | Base directory for Actual Budget download cache (only the latest downloaded budget is kept) | `./data/budget` |
 | `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR` (only the latest downloaded budget is kept)            | `./data/budget` |
-| `AUTO_RECONCILE`                    | Mark newly categorized transactions as reconciled when true; set to `false` to disable       | `true`          |
+| `AUTO_RECONCILE`                    | Mark newly categorized transactions as reconciled when true; set to `false` to disable      | `true`          |
 | `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only)                                  | `false`         |
 | `EMBED_BATCH_SIZE`                  | Batch size for text embedding                                                               | `512`           |
 | `CLASSIFY_CRON`                     | Cron schedule for classification daemon                                                     | `0 * * * *`     |

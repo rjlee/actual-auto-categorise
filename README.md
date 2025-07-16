@@ -122,7 +122,7 @@ npm start -- --mode train
 CLASSIFIER_TYPE=tf npm start -- --mode train
 ```
 
-The training run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`).
+The training run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
 On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
 
 This will generate training data and save the model to `<DATA_DIR>/tx-classifier-knn`.
@@ -138,7 +138,7 @@ Retrieve new (unreconciled) transactions, classify them using the trained model,
 npm start -- --mode classify [--dry-run] [--verbose]
 ```
 
-The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`).
+The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories.
@@ -340,8 +340,8 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `ACTUAL_SYNC_ID`                    | The Sync ID specified in Actual Budget Advanced Settings   | —               |
 | `ACTUAL_BUDGET_ENCRYPTION_PASSWORD` | Password for encrypted Actual Budget file (optional)       | —               |
 | `DATA_DIR`                          | Base directory for training data and model outputs         | `./data`        |
-| `BUDGET_DIR`                        | Base directory for Actual Budget download cache            | `./data/budget` |
-| `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR`                       | `./data/budget` |
+| `BUDGET_DIR`                        | Base directory for Actual Budget download cache (only the latest downloaded budget is kept)            | `./data/budget` |
+| `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR` (only the latest downloaded budget is kept)                       | `./data/budget` |
 | `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only) | `false`         |
 | `EMBED_BATCH_SIZE`                  | Batch size for text embedding                              | `512`           |
 | `CLASSIFY_CRON`                     | Cron schedule for classification daemon                    | `0 * * * *`     |

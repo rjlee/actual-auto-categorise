@@ -97,8 +97,16 @@ async function runClassification({
         ? await classifyWithTF(toClassify, modelDir)
         : await classifyWithML(toClassify, modelDir);
 
-    // Apply predicted categories
+    // Apply predicted categories (and optionally mark reconciled)
     const categories = await getCategories();
+    // AUTO_RECONCILE: default to true, disable only if explicitly set to 'false'
+    const reconcileSetting =
+      config.autoReconcile ??
+      config.AUTO_RECONCILE ??
+      process.env.AUTO_RECONCILE;
+    const autoReconcile =
+      reconcileSetting === undefined ||
+      String(reconcileSetting).toLowerCase() !== 'false';
     let appliedCount = 0;
     for (const tx of classified) {
       if (!tx.category) continue;
@@ -112,7 +120,9 @@ async function runClassification({
         process.exit(1);
       }
       if (!dryRun) {
-        await updateTransaction(tx.id, { category: catObj.id });
+        const update = { category: catObj.id };
+        if (autoReconcile) update.reconciled = true;
+        await updateTransaction(tx.id, update);
       } else {
         log.info(
           { txId: tx.id, category: tx.category },

@@ -32,32 +32,12 @@ async function openBudget() {
     if (budgetPassword) opts.password = budgetPassword;
 
     if (!hasDownloadedBudget) {
-      if (process.env.DISABLE_IMPORT_BACKUPS === 'true') {
-        logger.info('Skipping import backup (DISABLE_IMPORT_BACKUPS=true)');
-        try {
-          await api.downloadBudget(syncId, opts);
-          logger.info('Budget downloaded');
-        } catch (err) {
-          logger.warn({ err }, 'Failed to download budget');
-        }
-      } else {
-        try {
-          await api.runImport(syncId, async () => {
-            try {
-              await api.downloadBudget(syncId, opts);
-              logger.info('Budget downloaded');
-            } catch (err) {
-              logger.warn({ err }, 'Failed to download budget');
-            }
-          });
-        } catch (err) {
-          try {
-            await api.downloadBudget(syncId, opts);
-            logger.info('Budget downloaded');
-          } catch (err2) {
-            logger.warn({ err2 }, 'Failed to download budget');
-          }
-        }
+      logger.info('Downloading budget (no backup)...');
+      try {
+        await api.downloadBudget(syncId, opts);
+        logger.info('Budget downloaded');
+      } catch (err) {
+        logger.warn({ err }, 'Failed to download budget');
       }
       hasDownloadedBudget = true;
     }

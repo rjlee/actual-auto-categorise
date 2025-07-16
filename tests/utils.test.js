@@ -40,55 +40,19 @@ describe('openBudget utility', () => {
     );
   });
 
-  test('calls init and falls back when runImport fails', async () => {
+  test('always downloads budget without backup', async () => {
     process.env.ACTUAL_SERVER_URL = 'u';
     process.env.ACTUAL_PASSWORD = 'p';
     process.env.ACTUAL_SYNC_ID = 'b';
     api.init.mockResolvedValue();
-    api.runImport.mockRejectedValue(new Error('fail'));
-    api.downloadBudget.mockResolvedValue();
-
-    await expect(openBudget()).resolves.toBeUndefined();
-    expect(api.init).toHaveBeenCalledWith({
-      dataDir: expect.any(String),
-      serverURL: 'u',
-      password: 'p',
-    });
-    expect(api.runImport).toHaveBeenCalled();
-    expect(api.downloadBudget).toHaveBeenCalled();
-  });
-
-  test('calls runImport on success and does not fallback', async () => {
-    process.env.ACTUAL_SERVER_URL = 'u';
-    process.env.ACTUAL_PASSWORD = 'p';
-    process.env.ACTUAL_SYNC_ID = 'b';
-    api.init.mockResolvedValue();
-    api.runImport.mockImplementation(async (_tag, fn) => fn());
-    api.downloadBudget.mockResolvedValue();
-
-    await expect(openBudget()).resolves.toBeUndefined();
-    expect(api.init).toHaveBeenCalled();
-    expect(api.runImport).toHaveBeenCalled();
-    // downloadBudget is invoked via runImport callback on success
-    expect(api.downloadBudget).toHaveBeenCalledTimes(1);
-  });
-
-  test('skips import backup when DISABLE_IMPORT_BACKUPS is true', async () => {
-    process.env.ACTUAL_SERVER_URL = 'u';
-    process.env.ACTUAL_PASSWORD = 'p';
-    process.env.ACTUAL_SYNC_ID = 'b';
-    process.env.DISABLE_IMPORT_BACKUPS = 'true';
-    api.init.mockResolvedValue();
-    api.runImport.mockResolvedValue();
     api.downloadBudget.mockResolvedValue();
     const info = jest.spyOn(logger, 'info').mockImplementation(() => {});
+
     await expect(openBudget()).resolves.toBeUndefined();
     expect(api.init).toHaveBeenCalled();
+    expect(api.downloadBudget).toHaveBeenCalledTimes(1);
     expect(api.runImport).not.toHaveBeenCalled();
-    expect(api.downloadBudget).toHaveBeenCalled();
-    expect(info).toHaveBeenCalledWith(
-      'Skipping import backup (DISABLE_IMPORT_BACKUPS=true)',
-    );
+    expect(info).toHaveBeenCalledWith('Downloading budget (no backup)...');
   });
 });
 

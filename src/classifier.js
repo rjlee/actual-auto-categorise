@@ -121,7 +121,10 @@ async function runClassification({
       }
       if (!dryRun) {
         const update = { category: catObj.id };
-        if (autoReconcile) update.reconciled = true;
+        if (autoReconcile) {
+          update.reconciled = true;
+          update.cleared = true;
+        }
         await updateTransaction(tx.id, update);
       } else {
         log.info(

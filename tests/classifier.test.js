@@ -109,6 +109,7 @@ describe('runClassification', () => {
     expect(updateTransaction).toHaveBeenCalledWith('tx1', {
       category: 'c1',
       reconciled: true,
+      cleared: true,
     });
   });
 
@@ -152,6 +153,7 @@ describe('runClassification', () => {
     expect(updateTransaction).toHaveBeenCalledWith('tx1', {
       category: 'c1',
       reconciled: true,
+      cleared: true,
     });
   });
 

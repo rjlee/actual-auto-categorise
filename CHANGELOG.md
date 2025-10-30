@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.11.0...v1.12.0) (2025-10-30)
+
+
+### Features
+
+* enhance classification logic to handle off-budget transactions and update README ([ec93504](https://github.com/rjlee/actual-auto-categorise/commit/ec93504482e1322648d500f5723dedd2944b6a33))
+
 # [1.11.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.10.0...v1.11.0) (2025-09-13)
 
 

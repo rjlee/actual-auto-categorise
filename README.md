@@ -146,6 +146,8 @@ On network or API errors during budget download, the classification run will abo
 
 > **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories. Newly categorized transactions will also be marked as reconciled and cleared by default; to disable this behavior, set `AUTO_RECONCILE=false`.
 
+> Budget scope: The classifier scans transactions from all accounts (on-budget and off-budget). However, it only sets a category for transactions in on-budget accounts. Reconciliation and clearing are still applied according to `AUTO_RECONCILE` for both on-budget and off-budget accounts.
+
 Options:
 
 - `--dry-run` perform classification without updating transactions

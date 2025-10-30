@@ -54,12 +54,19 @@ async function runClassification({
   }
   const start = Date.now();
   try {
-    // Fetch unreconciled, uncategorized transactions
+    // Fetch unreconciled, uncategorized transactions for all accounts
+    // Track whether each transaction belongs to an off-budget account
     const accounts = await getAccounts();
     let rawTxns = [];
+    const txOffbudgetMap = new Map(); // txId -> boolean
     for (const acct of accounts) {
       const txns = await getTransactions(acct.id);
-      rawTxns.push(...txns.filter((tx) => !tx.reconciled && !tx.category));
+      const filtered = txns.filter((tx) => !tx.reconciled && !tx.category);
+      for (const tx of filtered) {
+        rawTxns.push(tx);
+        // Actual account objects expose `offbudget: true` for off-budget accounts
+        txOffbudgetMap.set(tx.id, Boolean(acct.offbudget));
+      }
     }
 
     // Prepare descriptions
@@ -120,11 +127,17 @@ async function runClassification({
         process.exit(1);
       }
       if (!dryRun) {
-        const update = { category: catObj.id };
+        const isOffBudget = txOffbudgetMap.get(tx.id) === true;
+        const update = {};
+        // Only set a category for on-budget accounts
+        if (!isOffBudget) update.category = catObj.id;
+        // Still apply reconciliation/cleared status regardless of budget status
         if (autoReconcile) {
           update.reconciled = true;
           update.cleared = true;
         }
+        // If update would be empty (e.g., off-budget and autoReconcile disabled), skip
+        if (Object.keys(update).length === 0) continue;
         await updateTransaction(tx.id, update);
       } else {
         log.info(

@@ -148,6 +148,8 @@ On network or API errors during budget download, the classification run will abo
 
 > Budget scope: The classifier scans transactions from all accounts (on-budget and off-budget). However, it only sets a category for transactions in on-budget accounts. Reconciliation and clearing are still applied according to `AUTO_RECONCILE` for both on-budget and off-budget accounts.
 
+> Reconcile/Clear delay: You can delay when transactions are marked cleared and reconciled by setting `AUTO_RECONCILE_DELAY_DAYS` (default: 5). When greater than 0, the app only clears/reconciles transactions whose transaction date is at least that many days in the past. Categories (for on-budget accounts) are applied immediately regardless of this delay.
+
 Options:
 
 - `--dry-run` perform classification without updating transactions

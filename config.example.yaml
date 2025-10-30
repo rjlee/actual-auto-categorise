@@ -20,3 +20,5 @@ CLASSIFIER_TYPE: ml
 
 # Mark newly categorized transactions as reconciled and cleared when true; set to false to disable (default: true)
 AUTO_RECONCILE: true
+# Optional delay (in days) before applying cleared/reconciled; 0 means immediate (default: 5)
+AUTO_RECONCILE_DELAY_DAYS: 5

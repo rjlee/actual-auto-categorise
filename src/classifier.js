@@ -114,6 +114,16 @@ async function runClassification({
     const autoReconcile =
       reconcileSetting === undefined ||
       String(reconcileSetting).toLowerCase() !== 'false';
+    // Optional delay (in days) before applying cleared/reconciled
+    const delaySetting =
+      config.autoReconcileDelayDays ??
+      config.AUTO_RECONCILE_DELAY_DAYS ??
+      process.env.AUTO_RECONCILE_DELAY_DAYS;
+    // Default to 5 days when not configured
+    const reconcileDelayDays =
+      delaySetting === undefined
+        ? 5
+        : Math.max(0, parseInt(delaySetting, 10) || 0);
     let appliedCount = 0;
     for (const tx of classified) {
       if (!tx.category) continue;
@@ -133,8 +143,24 @@ async function runClassification({
         if (!isOffBudget) update.category = catObj.id;
         // Still apply reconciliation/cleared status regardless of budget status
         if (autoReconcile) {
-          update.reconciled = true;
-          update.cleared = true;
+          let canReconcile = true;
+          if (reconcileDelayDays > 0) {
+            // Use tx.date (YYYY-MM-DD) when available; otherwise assume eligible now
+            const d = tx.date || tx.postDate || tx.importedDate;
+            if (d) {
+              const txDate = new Date(d);
+              if (!isNaN(txDate)) {
+                const now = new Date();
+                const ageMs = now.getTime() - txDate.getTime();
+                const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+                canReconcile = ageDays >= reconcileDelayDays;
+              }
+            }
+          }
+          if (canReconcile) {
+            update.reconciled = true;
+            update.cleared = true;
+          }
         }
         // If update would be empty (e.g., off-budget and autoReconcile disabled), skip
         if (Object.keys(update).length === 0) continue;

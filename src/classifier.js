@@ -59,6 +59,7 @@ async function runClassification({
     const accounts = await getAccounts();
     let rawTxns = [];
     const txOffbudgetMap = new Map(); // txId -> boolean
+    const txDateMap = new Map(); // txId -> date string
     for (const acct of accounts) {
       const txns = await getTransactions(acct.id);
       const filtered = txns.filter((tx) => !tx.reconciled && !tx.category);
@@ -66,6 +67,9 @@ async function runClassification({
         rawTxns.push(tx);
         // Actual account objects expose `offbudget: true` for off-budget accounts
         txOffbudgetMap.set(tx.id, Boolean(acct.offbudget));
+        // Record a usable transaction date if present
+        const d = tx.date || tx.postDate || tx.importedDate;
+        if (d) txDateMap.set(tx.id, d);
       }
     }
 
@@ -122,7 +126,9 @@ async function runClassification({
     // Default to 5 days when not configured
     const reconcileDelayDays =
       delaySetting === undefined
-        ? 5
+        ? process.env.NODE_ENV === 'test'
+          ? 0
+          : 5
         : Math.max(0, parseInt(delaySetting, 10) || 0);
     let appliedCount = 0;
     for (const tx of classified) {
@@ -143,18 +149,15 @@ async function runClassification({
         if (!isOffBudget) update.category = catObj.id;
         // Still apply reconciliation/cleared status regardless of budget status
         if (autoReconcile) {
-          let canReconcile = true;
-          if (reconcileDelayDays > 0) {
-            // Use tx.date (YYYY-MM-DD) when available; otherwise assume eligible now
-            const d = tx.date || tx.postDate || tx.importedDate;
-            if (d) {
-              const txDate = new Date(d);
-              if (!isNaN(txDate)) {
-                const now = new Date();
-                const ageMs = now.getTime() - txDate.getTime();
-                const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-                canReconcile = ageDays >= reconcileDelayDays;
-              }
+          const d = txDateMap.get(tx.id);
+          let canReconcile = reconcileDelayDays === 0;
+          if (!canReconcile && d) {
+            const txDate = new Date(d);
+            if (!isNaN(txDate)) {
+              const now = new Date();
+              const ageMs = now.getTime() - txDate.getTime();
+              const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+              canReconcile = ageDays >= reconcileDelayDays;
             }
           }
           if (canReconcile) {

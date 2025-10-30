@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.12.0...v1.13.0) (2025-10-30)
+
+
+### Features
+
+* add AUTO_RECONCILE_DELAY_DAYS option to configuration and update documentation ([2c49bbb](https://github.com/rjlee/actual-auto-categorise/commit/2c49bbb88b99870c9b150ef47ff19be9a6b7d817))
+
 # [1.12.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.11.0...v1.12.0) (2025-10-30)
 
 

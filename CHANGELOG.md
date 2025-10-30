@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.13.0...v1.14.0) (2025-10-30)
+
+
+### Features
+
+* implement transaction date tracking and reconcile delay logic in classification ([c26fe00](https://github.com/rjlee/actual-auto-categorise/commit/c26fe00dd5334cd82dd2cb75dc14c3dfbe83d663))
+
 # [1.13.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.12.0...v1.13.0) (2025-10-30)
 
 

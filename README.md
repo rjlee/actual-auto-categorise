@@ -105,6 +105,8 @@ CLASSIFIER_TYPE: ml
 
 # Mark newly categorized transactions as reconciled and cleared when true; set to false to disable (default: true)
 AUTO_RECONCILE: true
+# Optional delay (in days) before applying cleared/reconciled; 0 means immediate (default: 5)
+AUTO_RECONCILE_DELAY_DAYS: 5
 ```
 
 A sample YAML config file is provided in `config.example.yaml`. Copy it to `config.yaml` or `config.yml` in the project root and adjust as needed.
@@ -367,6 +369,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `BUDGET_DIR`                        | Base directory for Actual Budget download cache (only the latest downloaded budget is kept)                            | `./data/budget` |
 | `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR` (only the latest downloaded budget is kept)                                       | `./data/budget` |
 | `AUTO_RECONCILE`                    | When true, auto clear/reconcile unreconciled transactions (respecting delay); only set category if missing (on-budget) | `true`          |
+| `AUTO_RECONCILE_DELAY_DAYS`         | Days to wait before setting `cleared` and `reconciled`; set to `0` for immediate                                       | `5`             |
 | `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only)                                                             | `false`         |
 | `EMBED_BATCH_SIZE`                  | Batch size for text embedding                                                                                          | `512`           |
 | `CLASSIFY_CRON`                     | Cron schedule for classification daemon                                                                                | `0 * * * *`     |

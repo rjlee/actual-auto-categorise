@@ -144,11 +144,11 @@ npm start -- --mode classify [--dry-run] [--verbose]
 The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
 On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
 
-> **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded with the new categories. Newly categorized transactions will also be marked as reconciled and cleared by default; to disable this behavior, set `AUTO_RECONCILE=false`.
+> **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded. By default (`AUTO_RECONCILE=true`), unreconciled transactions are marked cleared and reconciled once eligible by delay rules (see below). For on-budget accounts, a category is set only if missing; existing categories are not changed. Off-budget accounts are never assigned a category but are still cleared/reconciled per the delay.
 
 > Budget scope: The classifier scans transactions from all accounts (on-budget and off-budget). However, it only sets a category for transactions in on-budget accounts. Reconciliation and clearing are still applied according to `AUTO_RECONCILE` for both on-budget and off-budget accounts.
 
-> Reconcile/Clear delay: You can delay when transactions are marked cleared and reconciled by setting `AUTO_RECONCILE_DELAY_DAYS` (default: 5). When greater than 0, the app only clears/reconciles transactions whose transaction date is at least that many days in the past. Categories (for on-budget accounts) are applied immediately regardless of this delay.
+> Reconcile/Clear delay: You can delay when transactions are marked cleared and reconciled by setting `AUTO_RECONCILE_DELAY_DAYS` (default: 5). When greater than 0, the app only clears/reconciles transactions whose transaction date is at least that many days in the past. Categories (for on-budget accounts) are applied immediately for uncategorized transactions regardless of this delay.
 
 Options:
 
@@ -366,7 +366,7 @@ You can set any of these via `.env` or your preferred config file (`config.yaml/
 | `DATA_DIR`                          | Base directory for training data and model outputs                                                 | `./data`        |
 | `BUDGET_DIR`                        | Base directory for Actual Budget download cache (only the latest downloaded budget is kept)        | `./data/budget` |
 | `BUDGET_CACHE_DIR`                  | _Deprecated_: alias for `BUDGET_DIR` (only the latest downloaded budget is kept)                   | `./data/budget` |
-| `AUTO_RECONCILE`                    | Mark newly categorized transactions as reconciled and cleared when true; set to `false` to disable | `true`          |
+| `AUTO_RECONCILE`                    | When true, auto clear/reconcile unreconciled transactions (respecting delay); only set category if missing (on-budget) | `true`          |
 | `ENABLE_NODE_VERSION_SHIM`          | Shim for Node>=20 guard in `@actual-app/api` (daemon only)                                         | `false`         |
 | `EMBED_BATCH_SIZE`                  | Batch size for text embedding                                                                      | `512`           |
 | `CLASSIFY_CRON`                     | Cron schedule for classification daemon                                                            | `0 * * * *`     |

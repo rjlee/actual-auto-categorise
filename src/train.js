@@ -23,12 +23,13 @@ const config = require('./config');
  */
 async function runTraining({ verbose = false } = {}) {
   const log = logger;
-  const outDir = config.dataDir
-    ? path.resolve(config.dataDir)
+  // Prefer BUDGET_CACHE_DIR (used in tests), then DATA_DIR, then config, then default
+  const outDir = process.env.BUDGET_CACHE_DIR
+    ? path.resolve(process.env.BUDGET_CACHE_DIR)
     : process.env.DATA_DIR
       ? path.resolve(process.env.DATA_DIR)
-      : process.env.BUDGET_CACHE_DIR
-        ? path.resolve(process.env.BUDGET_CACHE_DIR)
+      : config.dataDir
+        ? path.resolve(config.dataDir)
         : path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 

@@ -54,7 +54,7 @@ async function runClassification({
   }
   const start = Date.now();
   try {
-    // Fetch unreconciled, uncategorized transactions for all accounts
+    // Fetch unreconciled transactions for all accounts
     // Track whether each transaction belongs to an off-budget account
     const accounts = await getAccounts();
     let rawTxns = [];
@@ -62,7 +62,7 @@ async function runClassification({
     const txDateMap = new Map(); // txId -> date string
     for (const acct of accounts) {
       const txns = await getTransactions(acct.id);
-      const filtered = txns.filter((tx) => !tx.reconciled && !tx.category);
+      const filtered = txns.filter((tx) => !tx.reconciled);
       for (const tx of filtered) {
         rawTxns.push(tx);
         // Actual account objects expose `offbudget: true` for off-budget accounts
@@ -76,17 +76,20 @@ async function runClassification({
     // Prepare descriptions
     const payees = await getPayees();
     const payeeMap = Object.fromEntries(payees.map((p) => [p.id, p.name]));
-    let toClassify = rawTxns.map((tx) => ({
-      id: tx.id,
-      // Combine payee name, memo/notes, and transaction amount
-      description: [
-        payeeMap[tx.payee],
-        tx.notes,
-        tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
-      ]
-        .filter((s) => typeof s === 'string' && s.trim())
-        .join(' – '),
-    }));
+    // Only classify transactions that do not yet have a category
+    let toClassify = rawTxns
+      .filter((tx) => !tx.category)
+      .map((tx) => ({
+        id: tx.id,
+        // Combine payee name, memo/notes, and transaction amount
+        description: [
+          payeeMap[tx.payee],
+          tx.notes,
+          tx.amount != null ? (tx.amount / 100).toFixed(2) : undefined,
+        ]
+          .filter((s) => typeof s === 'string' && s.trim())
+          .join(' – '),
+      }));
     // Skip records with empty combined description
     toClassify = toClassify.filter((row) => row.description.trim() !== '');
     if (verbose) {
@@ -131,6 +134,7 @@ async function runClassification({
           : 5
         : Math.max(0, parseInt(delaySetting, 10) || 0);
     let appliedCount = 0;
+    // First, apply updates for transactions we classified in this run
     for (const tx of classified) {
       if (!tx.category) continue;
       log.debug(
@@ -175,6 +179,28 @@ async function runClassification({
         );
       }
       appliedCount++;
+    }
+    // Next, auto-reconcile any remaining unreconciled transactions that already
+    // have a category (do not modify their category)
+    if (!dryRun && autoReconcile) {
+      for (const orig of rawTxns) {
+        if (!orig.category) continue; // already handled above via classification
+        const d = txDateMap.get(orig.id);
+        let canReconcile = reconcileDelayDays === 0;
+        if (!canReconcile && d) {
+          const txDate = new Date(d);
+          if (!isNaN(txDate)) {
+            const now = new Date();
+            const ageMs = now.getTime() - txDate.getTime();
+            const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+            canReconcile = ageDays >= reconcileDelayDays;
+          }
+        }
+        if (canReconcile) {
+          await updateTransaction(orig.id, { reconciled: true, cleared: true });
+          appliedCount++;
+        }
+      }
     }
     const durationMs = Date.now() - start;
     log.info({ appliedCount, durationMs }, 'Classification run complete');

@@ -76,9 +76,17 @@ async function runClassification({
     // Prepare descriptions
     const payees = await getPayees();
     const payeeMap = Object.fromEntries(payees.map((p) => [p.id, p.name]));
+    const isTransferTx = (tx) =>
+      tx?.is_transfer === true ||
+      tx?.isTransfer === true ||
+      tx?.transfer_id != null ||
+      tx?.transferId != null ||
+      tx?.linkedTransaction != null ||
+      tx?.linkedTransactionId != null ||
+      tx?.type === 'transfer';
     // Only classify transactions that do not yet have a category
     let toClassify = rawTxns
-      .filter((tx) => !tx.category)
+      .filter((tx) => !tx.category && !isTransferTx(tx))
       .map((tx) => ({
         id: tx.id,
         // Combine payee name, memo/notes, and transaction amount
@@ -181,10 +189,19 @@ async function runClassification({
       appliedCount++;
     }
     // Next, auto-reconcile any remaining unreconciled transactions that already
-    // have a category (do not modify their category)
+    // have a category OR are transfers (do not modify category)
     if (!dryRun && autoReconcile) {
       for (const orig of rawTxns) {
-        if (!orig.category) continue; // already handled above via classification
+        // already handled above via classification path for newly categorized
+        const isTransfer =
+          orig?.is_transfer === true ||
+          orig?.isTransfer === true ||
+          orig?.transfer_id != null ||
+          orig?.transferId != null ||
+          orig?.linkedTransaction != null ||
+          orig?.linkedTransactionId != null ||
+          orig?.type === 'transfer';
+        if (!orig.category && !isTransfer) continue;
         const d = txDateMap.get(orig.id);
         let canReconcile = reconcileDelayDays === 0;
         if (!canReconcile && d) {

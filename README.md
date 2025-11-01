@@ -152,6 +152,8 @@ On network or API errors during budget download, the classification run will abo
 
 > Reconcile/Clear delay: You can delay when transactions are marked cleared and reconciled by setting `AUTO_RECONCILE_DELAY_DAYS` (default: 5). When greater than 0, the app only clears/reconciles transactions whose transaction date is at least that many days in the past. Categories (for on-budget accounts) are applied immediately for uncategorized transactions regardless of this delay.
 
+> Transfers: Transactions linked as transfers are excluded from categorization (they will not be sent to the classifier). This detection uses transaction-level indicators (e.g., `is_transfer`, `transferId`, `linkedTransactionId`). When `AUTO_RECONCILE` is enabled, eligible transfer transactions are still auto-cleared/reconciled after the configured `AUTO_RECONCILE_DELAY_DAYS`.
+
 Options:
 
 - `--dry-run` perform classification without updating transactions

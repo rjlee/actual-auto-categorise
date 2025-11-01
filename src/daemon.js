@@ -3,7 +3,10 @@ const cron = require('node-cron');
 const config = require('./config');
 const logger = require('./logger');
 const { runTraining } = require('./train');
-const { runClassification } = require('./classifier');
+const { runClassificationJob, triggerDebounced } = require('./runner');
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
 
 const { startWebUi } = require('./web-ui');
 const { openBudget, closeBudget } = require('./utils');
@@ -34,31 +37,16 @@ function scheduleClassification(verbose) {
     { job: 'classification', schedule, timezone },
     'Starting classification daemon',
   );
-  let running = false;
   cron.schedule(
     schedule,
     async () => {
       const ts = new Date().toISOString();
-      if (running) {
-        logger.warn(
-          { ts },
-          'Skipping scheduled classification run: previous run still in progress',
-        );
-        return;
-      }
-      running = true;
       logger.info({ ts }, 'Daemon classification run start');
       try {
-        const count = await runClassification({
-          dryRun: false,
-          verbose,
-          useLogger: true,
-        });
+        const count = await runClassificationJob({ verbose });
         logger.info({ ts, count }, 'Daemon classification run complete');
       } catch (err) {
         logger.error({ err, ts }, 'Daemon run failed');
-      } finally {
-        running = false;
       }
     },
     timezone ? { timezone } : {},
@@ -134,6 +122,129 @@ async function runDaemon({ verbose, ui, httpPort }) {
   if (ui || explicitPort) startWebUi(httpPort, verbose);
   scheduleClassification(verbose);
   scheduleTraining(verbose);
+
+  // Optional: integrate with actual-events SSE to trigger classification on changes
+  const enableEvents =
+    config.enableEvents === true ||
+    config.ENABLE_EVENTS === true ||
+    /^true$/i.test(process.env.ENABLE_EVENTS || '');
+  const eventsUrl =
+    config.eventsUrl || config.EVENTS_URL || process.env.EVENTS_URL || '';
+  const authToken =
+    config.eventsAuthToken ||
+    config.EVENTS_AUTH_TOKEN ||
+    process.env.EVENTS_AUTH_TOKEN ||
+    '';
+  if (enableEvents && eventsUrl) {
+    startEventsListener({ eventsUrl, authToken, verbose });
+  } else if (enableEvents && !eventsUrl) {
+    logger.warn(
+      'ENABLE_EVENTS set but EVENTS_URL missing; skipping event listener',
+    );
+  }
 }
 
 module.exports = { runDaemon, scheduleClassification, scheduleTraining };
+
+// Lightweight SSE client to subscribe to actual-events
+function startEventsListener({ eventsUrl, authToken, verbose }) {
+  try {
+    const base = new URL(eventsUrl);
+    // Apply default filters if none provided in URL
+    if (!base.searchParams.get('events')) {
+      base.searchParams.set('events', '^transaction\\.(created|updated)$');
+      base.searchParams.set('entities', 'transaction');
+      base.searchParams.set('useRegex', 'true');
+    }
+    const isHttps = base.protocol === 'https:';
+    const agent = isHttps ? https : http;
+    let lastId = undefined;
+    let retryMs = 2000;
+
+    const connect = () => {
+      const headers = {};
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      if (lastId) headers['Last-Event-ID'] = lastId;
+      headers['Accept'] = 'text/event-stream';
+      const req = agent.request(
+        base,
+        {
+          method: 'GET',
+          headers,
+        },
+        (res) => {
+          if (res.statusCode !== 200) {
+            logger.warn(
+              { status: res.statusCode },
+              'Event stream returned non-200; will retry',
+            );
+            res.resume();
+            setTimeout(connect, retryMs);
+            retryMs = Math.min(30000, retryMs * 2);
+            return;
+          }
+          logger.info({ url: base.toString() }, 'Connected to event stream');
+          retryMs = 2000;
+          let buf = '';
+          res.on('data', (chunk) => {
+            buf += chunk.toString('utf8');
+            let idx;
+            while ((idx = buf.indexOf('\n\n')) !== -1) {
+              const raw = buf.slice(0, idx);
+              buf = buf.slice(idx + 2);
+              handleEvent(raw);
+            }
+          });
+          res.on('end', () => {
+            logger.warn('Event stream ended; reconnecting');
+            setTimeout(connect, retryMs);
+            retryMs = Math.min(30000, retryMs * 2);
+          });
+        },
+      );
+      req.on('error', (err) => {
+        logger.warn({ err }, 'Event stream error; reconnecting');
+        setTimeout(connect, retryMs);
+        retryMs = Math.min(30000, retryMs * 2);
+      });
+      req.end();
+    };
+
+    const handleEvent = (raw) => {
+      try {
+        const lines = raw.split(/\r?\n/);
+        let id = null;
+        let event = 'message';
+        let data = '';
+        for (const line of lines) {
+          if (!line) continue;
+          if (line.startsWith('id:')) id = line.slice(3).trim();
+          else if (line.startsWith('event:')) event = line.slice(6).trim();
+          else if (line.startsWith('data:')) data += line.slice(5).trim();
+        }
+        if (id) lastId = id;
+        if (!data) return;
+        const payload = JSON.parse(data);
+        if (
+          event === 'transaction.created' ||
+          event === 'transaction.updated'
+        ) {
+          // Debounce multiple events; queue a classification job soon
+          if (verbose) {
+            logger.info(
+              { event, txId: payload?.after?.id || payload?.before?.id },
+              'Event received; scheduling classification',
+            );
+          }
+          triggerDebounced({ verbose, delayMs: 1500 });
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    };
+
+    connect();
+  } catch (err) {
+    logger.warn({ err }, 'Failed to start event listener');
+  }
+}

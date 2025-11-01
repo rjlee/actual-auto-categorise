@@ -314,6 +314,23 @@ export TRAIN_CRON_TIMEZONE="UTC"
 
 Invalid cron expressions for `CLASSIFY_CRON` or `TRAIN_CRON` will cause the daemon to exit on startup.
 
+### Optional: Event-based triggers (actual-events)
+
+You can optionally listen to events from the companion `actual-events` sidecar to trigger near-real-time classification when new transactions arrive. This runs alongside the cron-based daemon (cron remains as a fallback) and debounces bursts of events to avoid redundant runs.
+
+Enable and configure via environment variables (or your config file):
+
+```bash
+# Enable the event listener
+ENABLE_EVENTS=true
+# Point to the actual-events SSE endpoint; include filters in the URL if desired
+EVENTS_URL=http://localhost:4000/events
+# Optional bearer token if actual-events requires auth
+EVENTS_AUTH_TOKEN=your-token
+```
+
+By default, the listener subscribes to `transaction.created` and `transaction.updated` events and triggers a classification run shortly after changes are detected. If you include your own query params in `EVENTS_URL`, they will be respected (otherwise defaults are applied).
+
 ## Testing & CI
 
 We use Jest for unit tests and GitHub Actions for continuous integration.

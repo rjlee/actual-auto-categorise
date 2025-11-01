@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.16.0...v1.17.0) (2025-11-01)
+
+
+### Features
+
+* add optional delay for auto-reconciliation in configuration ([57ceac6](https://github.com/rjlee/actual-auto-categorise/commit/57ceac6fd14739c15f2378707f652a14383dbfbf))
+
 # [1.16.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.15.0...v1.16.0) (2025-11-01)
 
 

@@ -7,7 +7,10 @@ let debounceTimer = null;
 
 async function runClassificationJob({ verbose = false } = {}) {
   if (running) {
-    logger.warn('Classification already running; skipping new run');
+    logger.warn(
+      { source: 'runner' },
+      'Skipping scheduled classification run: previous run still in progress',
+    );
     pending = true;
     return 0;
   }

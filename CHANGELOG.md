@@ -1,3 +1,15 @@
+# [1.16.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.15.0...v1.16.0) (2025-11-01)
+
+
+### Bug Fixes
+
+* improve formatting and alignment of environment variable table in README ([bf51e71](https://github.com/rjlee/actual-auto-categorise/commit/bf51e71c83681baef16761999752a15c4d4dd286))
+
+
+### Features
+
+* enhance auto-reconciliation logic and update documentation for clarity ([6683666](https://github.com/rjlee/actual-auto-categorise/commit/6683666452119cf38540b885cd8e834b1330da00))
+
 # [1.15.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.14.0...v1.15.0) (2025-11-01)
 
 

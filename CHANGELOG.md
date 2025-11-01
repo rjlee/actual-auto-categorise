@@ -1,3 +1,15 @@
+# [1.15.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.14.0...v1.15.0) (2025-11-01)
+
+
+### Bug Fixes
+
+* improve logging message for skipped classification runs ([e33a38e](https://github.com/rjlee/actual-auto-categorise/commit/e33a38ec9243744ad4c7ab7aa4721dfdf2516dd7))
+
+
+### Features
+
+* add event-based triggers for near-real-time classification and implement debounce logic ([fd187d2](https://github.com/rjlee/actual-auto-categorise/commit/fd187d21e3c46be91e66418c5694092956a7d6fc))
+
 # [1.14.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.13.0...v1.14.0) (2025-10-30)
 
 

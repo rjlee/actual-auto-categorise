@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.17.0...v1.18.0) (2025-11-01)
+
+
+### Features
+
+* add transfer transaction filtering and auto-reconciliation logic ([b22415f](https://github.com/rjlee/actual-auto-categorise/commit/b22415fc52e86578d1aab90d8fdf71e256309882))
+
 # [1.17.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.16.0...v1.17.0) (2025-11-01)
 
 

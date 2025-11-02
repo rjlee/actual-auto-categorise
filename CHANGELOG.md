@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.3...v1.18.4) (2025-11-02)
+
+
+### Bug Fixes
+
+* fix build process ([a26bc4c](https://github.com/rjlee/actual-auto-categorise/commit/a26bc4cb6415c7848066e4099de005983eb374b7))
+
 ## [1.18.3](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.2...v1.18.3) (2025-11-02)
 
 

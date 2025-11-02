@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.0...v1.18.1) (2025-11-02)
+
+
+### Bug Fixes
+
+* update container name ([8c12c21](https://github.com/rjlee/actual-auto-categorise/commit/8c12c21128a9ea0f0999257ca2385572d03a541f))
+
 # [1.18.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.17.0...v1.18.0) (2025-11-01)
 
 

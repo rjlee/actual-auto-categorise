@@ -8,8 +8,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install JS dependencies and prune dev dependencies for a lean build
+ARG ACTUAL_API_VERSION
+ARG GIT_SHA
+ARG APP_VERSION
 COPY package*.json ./
-RUN npm ci && npm prune --production
+RUN if [ -n "$ACTUAL_API_VERSION" ]; then \
+      npm pkg set dependencies.@actual-app/api=$ACTUAL_API_VERSION && \
+      npm install --package-lock-only; \
+    fi && \
+    npm ci && npm prune --production
 
 # Copy application source
 COPY . .
@@ -20,6 +27,14 @@ WORKDIR /app
 
 # Copy application and dependencies from build stage
 COPY --from=builder /app /app
+
+# Useful metadata
+ARG ACTUAL_API_VERSION
+ARG GIT_SHA
+ARG APP_VERSION
+LABEL org.opencontainers.image.revision="$GIT_SHA" \
+      org.opencontainers.image.version="$APP_VERSION" \
+      io.actual.api.version="$ACTUAL_API_VERSION"
 
 # Default command: run the cron-based daemon
 CMD ["npm", "run", "daemon"]

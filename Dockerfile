@@ -9,6 +9,7 @@ RUN apt-get update \
 
 # Disable git hooks/husky and other lifecycle scripts during image build
 ENV HUSKY=0
+ENV npm_config_ignore_scripts=true
 
 # Install JS dependencies and prune dev dependencies for a lean build
 ARG ACTUAL_API_VERSION
@@ -17,7 +18,7 @@ ARG APP_VERSION
 COPY package*.json ./
 RUN if [ -n "$ACTUAL_API_VERSION" ]; then \
       npm pkg set dependencies.@actual-app/api=$ACTUAL_API_VERSION && \
-      npm install --package-lock-only; \
+      npm install --package-lock-only --ignore-scripts; \
     fi && \
     npm ci --omit=dev --ignore-scripts
 

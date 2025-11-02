@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.versions.outputs.matrix }}
+      max_major: ${{ steps.versions.outputs.max_major }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -99,11 +100,11 @@ jobs:
         id: taglist
         run: |
           LIST=$(cat <<EOF
-ghcr.io/${{ github.repository }}:api-${{ matrix.ver }}
-ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.minor }}
-ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.major }}
-EOF
-)
+          ghcr.io/${{ github.repository }}:api-${{ matrix.ver }}
+          ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.minor }}
+          ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.major }}
+          EOF
+          )
           if [ "${{ steps.aliases.outputs.major }}" = "${{ needs.matrix-build.outputs.max_major }}" ]; then
             LIST="$LIST
 ghcr.io/${{ github.repository }}:api-stable"

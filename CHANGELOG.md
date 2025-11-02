@@ -1,3 +1,11 @@
+## [1.18.2](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.1...v1.18.2) (2025-11-02)
+
+
+### Bug Fixes
+
+* formatting ([29a30e0](https://github.com/rjlee/actual-auto-categorise/commit/29a30e04504be59c8484420a2d771dd0cc097742))
+* update build pipeline to support actual-api release versions ([93490da](https://github.com/rjlee/actual-auto-categorise/commit/93490da849e485460f5bdefad91a42ea85cdc022))
+
 ## [1.18.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.0...v1.18.1) (2025-11-02)
 
 

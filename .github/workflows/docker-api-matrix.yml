@@ -99,19 +99,17 @@ jobs:
       - name: Compose tag list (include api-stable on highest major)
         id: taglist
         run: |
-          LIST=$(cat <<EOF
-          ghcr.io/${{ github.repository }}:api-${{ matrix.ver }}
-          ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.minor }}
-          ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.major }}
-          EOF
-          )
+          LIST="ghcr.io/${{ github.repository }}:api-${{ matrix.ver }}"
+          LIST="$LIST"$'\n'"ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.minor }}"
+          LIST="$LIST"$'\n'"ghcr.io/${{ github.repository }}:api-${{ steps.aliases.outputs.major }}"
           if [ "${{ steps.aliases.outputs.major }}" = "${{ needs.matrix-build.outputs.max_major }}" ]; then
-            LIST="$LIST
-ghcr.io/${{ github.repository }}:api-stable"
+            LIST="$LIST"$'\n'"ghcr.io/${{ github.repository }}:api-stable"
           fi
-          echo "list<<EOF" >> $GITHUB_OUTPUT
-          echo "$LIST" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "list<<EOF"
+            echo "$LIST"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push (api matrix)
         uses: docker/build-push-action@v6

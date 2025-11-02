@@ -1,7 +1,7 @@
 services:
-  classifier:
+  actual-auto-categorise:
     image: ghcr.io/rjlee/actual-auto-categorise:latest
-    container_name: actual-classifier
+    container_name: actual-auto-categorise
     env_file:
       - .env
     # Expose the web UI port (default HTTP_PORT or 3000)

@@ -178,7 +178,7 @@ async function runTraining({ verbose = false } = {}) {
     log.error('Training failed:', err);
     return;
   } finally {
-    await closeBudget();
+    await closeBudget({ dirty: false });
   }
 }
 

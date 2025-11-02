@@ -52,13 +52,26 @@ async function openBudget() {
   }
 }
 
-async function closeBudget() {
+async function closeBudget({ dirty = false } = {}) {
   // Reset flag so reopen re-downloads budget/prefs
   hasDownloadedBudget = false;
   try {
+    // Best-effort final sync only when local budget changes were applied
+    if (dirty && typeof api.sync === 'function') {
+      try {
+        await api.sync();
+      } catch (err) {
+        logger.warn({ err }, 'Final sync failed; continuing shutdown');
+      }
+    }
+    // Shutdown must succeed; if it fails, exit (preserve existing behavior)
     await api.shutdown();
     if (typeof api.resetBudgetCache === 'function') {
-      await api.resetBudgetCache();
+      try {
+        await api.resetBudgetCache();
+      } catch (err) {
+        logger.warn({ err }, 'Reset budget cache failed; ignoring');
+      }
     }
   } catch (err) {
     logger.error(err);

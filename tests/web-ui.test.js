@@ -19,8 +19,8 @@ describe('Web UI server (E2E)', () => {
   let url;
   beforeAll(() => {
     server = startWebUi(0, false);
-    const port = server.address().port;
-    url = `http://127.0.0.1:${port}`;
+    const addr = server.address();
+    url = `http://127.0.0.1:${addr.port}`;
   });
   afterAll(() => new Promise((resolve) => server.close(resolve)));
 

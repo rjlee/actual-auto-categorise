@@ -34,7 +34,6 @@ const { runClassification } = require('../src/classifier');
 describe('runClassification', () => {
   beforeEach(() => {
     delete process.env.CLASSIFIER_TYPE;
-    delete process.env.AUTO_RECONCILE;
     jest.resetAllMocks();
     // Provide defaults for payees/categories and ML classifier
     getPayees.mockResolvedValue([]);
@@ -89,7 +88,7 @@ describe('runClassification', () => {
     expect(updateTransaction).not.toHaveBeenCalled();
   });
 
-  test('applies updates for classified transactions (live run)', async () => {
+  test('applies category for classified transactions (live run)', async () => {
     getAccounts.mockResolvedValue([{ id: 'acct1' }]);
     getTransactions.mockResolvedValue([
       {
@@ -106,11 +105,7 @@ describe('runClassification', () => {
 
     const count = await runClassification({ dryRun: false, verbose: false });
     expect(count).toBe(1);
-    expect(updateTransaction).toHaveBeenCalledWith('tx1', {
-      category: 'c1',
-      reconciled: true,
-      cleared: true,
-    });
+    expect(updateTransaction).toHaveBeenCalledWith('tx1', { category: 'c1' });
   });
 
   test('does not call updateTransaction in dry-run mode', async () => {
@@ -133,50 +128,7 @@ describe('runClassification', () => {
     expect(updateTransaction).not.toHaveBeenCalled();
   });
 
-  test('marks categorized transactions reconciled by default', async () => {
-    getAccounts.mockResolvedValue([{ id: 'acct1' }]);
-    getTransactions.mockResolvedValue([
-      {
-        id: 'tx1',
-        reconciled: false,
-        category: null,
-        payee: 'p1',
-        description: 'desc',
-      },
-    ]);
-    getPayees.mockResolvedValue([{ id: 'p1', name: 'PayeeName' }]);
-    classifyWithML.mockResolvedValue([{ id: 'tx1', category: 'CatName' }]);
-    getCategories.mockResolvedValue([{ id: 'c1', name: 'CatName' }]);
-
-    const count = await runClassification({ dryRun: false, verbose: false });
-    expect(count).toBe(1);
-    expect(updateTransaction).toHaveBeenCalledWith('tx1', {
-      category: 'c1',
-      reconciled: true,
-      cleared: true,
-    });
-  });
-
-  test('does not reconcile when AUTO_RECONCILE is false', async () => {
-    process.env.AUTO_RECONCILE = 'false';
-    getAccounts.mockResolvedValue([{ id: 'acct1' }]);
-    getTransactions.mockResolvedValue([
-      {
-        id: 'tx1',
-        reconciled: false,
-        category: null,
-        payee: 'p1',
-        description: 'desc',
-      },
-    ]);
-    getPayees.mockResolvedValue([{ id: 'p1', name: 'PayeeName' }]);
-    classifyWithML.mockResolvedValue([{ id: 'tx1', category: 'CatName' }]);
-    getCategories.mockResolvedValue([{ id: 'c1', name: 'CatName' }]);
-
-    const count = await runClassification({ dryRun: false, verbose: false });
-    expect(count).toBe(1);
-    expect(updateTransaction).toHaveBeenCalledWith('tx1', { category: 'c1' });
-  });
+  // Only category updates are applied
 
   test('skips transactions with empty descriptions before classification', async () => {
     openBudget.mockResolvedValue();

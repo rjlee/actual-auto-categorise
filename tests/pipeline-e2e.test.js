@@ -65,8 +65,6 @@ describe('Pipeline E2E (train→classify)', () => {
     });
     expect(api.updateTransaction).toHaveBeenCalledWith('t1', {
       category: 'c1',
-      reconciled: true,
-      cleared: true,
     });
   });
 });

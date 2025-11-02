@@ -112,7 +112,7 @@ async function runDaemon({ verbose, ui, httpPort }) {
   } catch (err) {
     logger.error({ err }, 'Initial budget sync failed');
   } finally {
-    await closeBudget();
+    await closeBudget({ dirty: false });
   }
 
   const explicitPort =

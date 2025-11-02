@@ -1,4 +1,11 @@
 /** @type {import('jest').Config} */
+const testPathIgnorePatterns = ['/node_modules/', '/dist/', '/resources/'];
+if (process.env.SKIP_WEB_UI_TESTS === 'true') {
+  // Skip Web UI E2E tests in restricted environments
+  testPathIgnorePatterns.push('/tests/web-ui.test.js$');
+}
+
+/** @type {import('jest').Config} */
 module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testEnvironment: 'node',
@@ -6,7 +13,7 @@ module.exports = {
   verbose: true,
   // Disable automatic coverage collection in local tests
   collectCoverage: false,
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/resources/'],
+  testPathIgnorePatterns,
   modulePathIgnorePatterns: ['/resources/'],
   moduleNameMapper: {
     '^@tensorflow/tfjs-node$': '<rootDir>/tests/mocks/tfjs-node.js',

@@ -17,10 +17,3 @@ DISABLE_CRON_SCHEDULING: false
 LOG_LEVEL: info
 # Classifier to use: 'ml' for Embed+KNN or 'tf' for TensorFlow.js (default: ml)
 CLASSIFIER_TYPE: ml
-
-# When true, mark unreconciled transactions as cleared and reconciled once eligible by delay rules.
-# For on-budget accounts, a category is set only if missing (existing categories are preserved).
-# Set to false to disable auto clearing/reconciliation (default: true)
-AUTO_RECONCILE: true
-# Optional delay (in days) before applying cleared/reconciled; 0 means immediate (default: 5)
-AUTO_RECONCILE_DELAY_DAYS: 5

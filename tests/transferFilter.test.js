@@ -36,7 +36,6 @@ describe('transfer transaction filter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.CLASSIFIER_TYPE;
-    process.env.AUTO_RECONCILE_DELAY_DAYS = '5';
     getAccounts.mockResolvedValue([{ id: 'acct1', offbudget: false }]);
     getPayees.mockResolvedValue([{ id: 'p1', name: 'P1' }]);
     getCategories.mockResolvedValue([{ id: 'c1', name: 'Cat' }]);
@@ -88,47 +87,5 @@ describe('transfer transaction filter', () => {
     expect(updateTransaction).not.toHaveBeenCalled();
   });
 
-  function fmtDate(offsetDays) {
-    const d = new Date();
-    d.setDate(d.getDate() + offsetDays);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  it('auto-reconciles old transfers after delay', async () => {
-    getTransactions.mockResolvedValue([
-      {
-        id: 't1',
-        reconciled: false,
-        category: null,
-        payee: 'p1',
-        amount: 100,
-        transferId: 'x',
-        date: fmtDate(-6),
-      },
-    ]);
-    await runClassification({ dryRun: false, verbose: false, useLogger: true });
-    expect(updateTransaction).toHaveBeenCalledWith('t1', {
-      reconciled: true,
-      cleared: true,
-    });
-  });
-
-  it('does not reconcile same-day transfers when delay set', async () => {
-    getTransactions.mockResolvedValue([
-      {
-        id: 't1',
-        reconciled: false,
-        category: null,
-        payee: 'p1',
-        amount: 100,
-        transferId: 'x',
-        date: fmtDate(0),
-      },
-    ]);
-    await runClassification({ dryRun: false, verbose: false, useLogger: true });
-    expect(updateTransaction).not.toHaveBeenCalled();
-  });
+  // Reconciliation behavior for transfers has been removed
 });

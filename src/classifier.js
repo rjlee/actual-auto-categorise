@@ -35,12 +35,13 @@ async function runClassification({
   const log = useLogger
     ? logger
     : { info: () => {}, debug: () => {}, error: () => {} };
-  const outDir = config.dataDir
-    ? path.resolve(config.dataDir)
+  // Align model/data directory selection with training: prefer budget cache
+  const outDir = process.env.BUDGET_CACHE_DIR
+    ? path.resolve(process.env.BUDGET_CACHE_DIR)
     : process.env.DATA_DIR
       ? path.resolve(process.env.DATA_DIR)
-      : process.env.BUDGET_CACHE_DIR
-        ? path.resolve(process.env.BUDGET_CACHE_DIR)
+      : config.dataDir
+        ? path.resolve(config.dataDir)
         : path.resolve(__dirname, '../data');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
@@ -53,13 +54,13 @@ async function runClassification({
     return 0;
   }
   const start = Date.now();
+  let appliedCount = 0;
   try {
     // Fetch unreconciled transactions for all accounts
     // Track whether each transaction belongs to an off-budget account
     const accounts = await getAccounts();
     let rawTxns = [];
     const txOffbudgetMap = new Map(); // txId -> boolean
-    const txDateMap = new Map(); // txId -> date string
     for (const acct of accounts) {
       const txns = await getTransactions(acct.id);
       const filtered = txns.filter((tx) => !tx.reconciled);
@@ -67,9 +68,6 @@ async function runClassification({
         rawTxns.push(tx);
         // Actual account objects expose `offbudget: true` for off-budget accounts
         txOffbudgetMap.set(tx.id, Boolean(acct.offbudget));
-        // Record a usable transaction date if present
-        const d = tx.date || tx.postDate || tx.importedDate;
-        if (d) txDateMap.set(tx.id, d);
       }
     }
 
@@ -119,29 +117,9 @@ async function runClassification({
         ? await classifyWithTF(toClassify, modelDir)
         : await classifyWithML(toClassify, modelDir);
 
-    // Apply predicted categories (and optionally mark reconciled)
+    // Apply predicted categories
     const categories = await getCategories();
-    // AUTO_RECONCILE: default to true, disable only if explicitly set to 'false'
-    const reconcileSetting =
-      config.autoReconcile ??
-      config.AUTO_RECONCILE ??
-      process.env.AUTO_RECONCILE;
-    const autoReconcile =
-      reconcileSetting === undefined ||
-      String(reconcileSetting).toLowerCase() !== 'false';
-    // Optional delay (in days) before applying cleared/reconciled
-    const delaySetting =
-      config.autoReconcileDelayDays ??
-      config.AUTO_RECONCILE_DELAY_DAYS ??
-      process.env.AUTO_RECONCILE_DELAY_DAYS;
-    // Default to 5 days when not configured
-    const reconcileDelayDays =
-      delaySetting === undefined
-        ? process.env.NODE_ENV === 'test'
-          ? 0
-          : 5
-        : Math.max(0, parseInt(delaySetting, 10) || 0);
-    let appliedCount = 0;
+    appliedCount = 0;
     // First, apply updates for transactions we classified in this run
     for (const tx of classified) {
       if (!tx.category) continue;
@@ -159,25 +137,7 @@ async function runClassification({
         const update = {};
         // Only set a category for on-budget accounts
         if (!isOffBudget) update.category = catObj.id;
-        // Still apply reconciliation/cleared status regardless of budget status
-        if (autoReconcile) {
-          const d = txDateMap.get(tx.id);
-          let canReconcile = reconcileDelayDays === 0;
-          if (!canReconcile && d) {
-            const txDate = new Date(d);
-            if (!isNaN(txDate)) {
-              const now = new Date();
-              const ageMs = now.getTime() - txDate.getTime();
-              const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-              canReconcile = ageDays >= reconcileDelayDays;
-            }
-          }
-          if (canReconcile) {
-            update.reconciled = true;
-            update.cleared = true;
-          }
-        }
-        // If update would be empty (e.g., off-budget and autoReconcile disabled), skip
+        // If update would be empty (e.g., off-budget), skip
         if (Object.keys(update).length === 0) continue;
         await updateTransaction(tx.id, update);
       } else {
@@ -188,42 +148,12 @@ async function runClassification({
       }
       appliedCount++;
     }
-    // Next, auto-reconcile any remaining unreconciled transactions that already
-    // have a category OR are transfers (do not modify category)
-    if (!dryRun && autoReconcile) {
-      for (const orig of rawTxns) {
-        // already handled above via classification path for newly categorized
-        const isTransfer =
-          orig?.is_transfer === true ||
-          orig?.isTransfer === true ||
-          orig?.transfer_id != null ||
-          orig?.transferId != null ||
-          orig?.linkedTransaction != null ||
-          orig?.linkedTransactionId != null ||
-          orig?.type === 'transfer';
-        if (!orig.category && !isTransfer) continue;
-        const d = txDateMap.get(orig.id);
-        let canReconcile = reconcileDelayDays === 0;
-        if (!canReconcile && d) {
-          const txDate = new Date(d);
-          if (!isNaN(txDate)) {
-            const now = new Date();
-            const ageMs = now.getTime() - txDate.getTime();
-            const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-            canReconcile = ageDays >= reconcileDelayDays;
-          }
-        }
-        if (canReconcile) {
-          await updateTransaction(orig.id, { reconciled: true, cleared: true });
-          appliedCount++;
-        }
-      }
-    }
+    // No additional post-processing
     const durationMs = Date.now() - start;
     log.info({ appliedCount, durationMs }, 'Classification run complete');
     return appliedCount;
   } finally {
-    await closeBudget();
+    await closeBudget({ dirty: appliedCount > 0 });
   }
 }
 

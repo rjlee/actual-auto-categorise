@@ -7,20 +7,20 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Disable git hooks/husky and other lifecycle scripts during image build
+# Disable git hooks/husky during image build; dependency scripts still run
 ENV HUSKY=0
-ENV npm_config_ignore_scripts=true
 
 # Install JS dependencies and prune dev dependencies for a lean build
 ARG ACTUAL_API_VERSION
 ARG GIT_SHA
 ARG APP_VERSION
 COPY package*.json ./
-RUN if [ -n "$ACTUAL_API_VERSION" ]; then \
+RUN npm pkg delete scripts.prepare || true && \
+    if [ -n "$ACTUAL_API_VERSION" ]; then \
       npm pkg set dependencies.@actual-app/api=$ACTUAL_API_VERSION && \
       npm install --package-lock-only --ignore-scripts; \
     fi && \
-    npm ci --omit=dev --ignore-scripts
+    npm ci --omit=dev
 
 # Copy application source
 COPY . .

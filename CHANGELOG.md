@@ -1,3 +1,12 @@
+## [1.18.7](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.6...v1.18.7) (2025-11-02)
+
+
+### Bug Fixes
+
+* fix syntax error ([d736917](https://github.com/rjlee/actual-auto-categorise/commit/d73691774656ecb05e0c26ee05ca11bee4d8428a))
+* fixed syntax error ([b1ab7eb](https://github.com/rjlee/actual-auto-categorise/commit/b1ab7eb6b3f68a043ccaf445deb51f8ba7e5ea66))
+* support actual api version specification in docker compose file ([edc91bc](https://github.com/rjlee/actual-auto-categorise/commit/edc91bcc79daa1ab4e9a39e6d60d976f8a4cf73e))
+
 ## [1.18.6](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.5...v1.18.6) (2025-11-02)
 
 

@@ -389,23 +389,30 @@ Docker image builds and publishes are handled by the same CI & Release workflow 
 
 > **Disclaimer:** Users run this software at their own risk; no warranties are provided, and the authors are not liable for any data loss or unintended side effects.
 
+## Releases & Docker
+
+We use GitHub Actions + semantic-release to automate version bumps, changelogs, and GitHub releases. Docker images are built via a reusable matrix workflow:
+
+- **CI**: runs on pushes and PRs to `main` (lint, format-check, tests).
+- **Release**: runs after CI succeeds (or manually). Uses semantic-release to publish a GitHub release when conventional commits indicate a new version.
+- **Docker build**: runs after Release and nightly at 23:00 UTC. Publishes API‑versioned images.
+
 ## Docker
 
 - Pull latest image: `docker pull ghcr.io/rjlee/actual-auto-categorise:latest`
 - Run with env file:
   - `docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:latest`
-- Persist cache data to the host by mounting `./data` to `/app/data`
+- Persist data by mounting `./data` to `/app/data`
 - Or via compose: `docker-compose up -d`
 
 ## API-Versioned Images
 
 Actual Budget's server and `@actual-app/api` should be compatible. This project publishes API‑specific images so you can pick an image that matches your server:
 
-- Exact pin: `ghcr.io/rjlee/actual-auto-categorise:api-25.2.1`
-- Minor alias: `ghcr.io/rjlee/actual-auto-categorise:api-25.2`
 - Major alias: `ghcr.io/rjlee/actual-auto-categorise:api-25`
+- Rolling latest (highest supported API major): `ghcr.io/rjlee/actual-auto-categorise:latest`
 
-The Dockerfile accepts a build arg `ACTUAL_API_VERSION` and CI publishes images for the latest patch of the last two API majors (stable only, no nightly/rc/edge). Each build also publishes rolling aliases for the minor and major lines. Images include labels:
+The Dockerfile accepts a build arg `ACTUAL_API_VERSION` and CI publishes images for the latest patch of the last three stable API majors (no nightly/rc/edge). Images include labels:
 
 - `io.actual.api.version` — the `@actual-app/api` version
 - `org.opencontainers.image.revision` — git SHA
@@ -413,17 +420,16 @@ The Dockerfile accepts a build arg `ACTUAL_API_VERSION` and CI publishes images 
 
 ### Examples
 
-- Run with a specific API line: `docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:api-25`
-- Pin exact API patch: `docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:api-25.2.1`
+- Run with a specific API major: `docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:api-25`
+- Follow the newest supported API major: `docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:latest`
 
 ## Release Strategy
 
 - **App releases (semantic‑release):**
-  - Tags: `<app-version>`, `<major>.<minor>`, `<major>`, `latest` (e.g. `1.1.7`, `1.1`, `1`, `latest`).
-  - Built from the repository’s locked dependencies.
+  - Manage versioning and changelog in this repo (no separate Docker tags for app versions).
 - **API matrix images (compatibility):**
-  - Scope: latest patch of the last two stable `@actual-app/api` majors.
-  - Tags per image: `api-<patch>`, `api-<minor>`, `api-<major>` (e.g. `api-25.12.3`, `api-25.12`, `api-25`).
+  - Scope: latest patch of the last three stable `@actual-app/api` majors.
+  - Tags per image: `api-<major>` for each supported major; `latest` points to the highest major.
   - Purpose: let you match your Actual server’s API line without changing your app version.
 
 ## Choosing an Image Tag
@@ -432,10 +438,8 @@ The Dockerfile accepts a build arg `ACTUAL_API_VERSION` and CI publishes images 
   - Use the major alias: `api-<MAJOR>` (e.g. `api-25`).
   - Pull example: `docker pull ghcr.io/rjlee/actual-auto-categorise:api-25`
   - This keeps you on the newest compatible patch for that major.
-- **You need a specific API patch:**
-  - Use the patch tag: `api-<MAJOR.MINOR.PATCH>` (e.g. `api-25.12.3`).
-- **You only care about the app release:**
-  - Use the semantic‑release tag: `<app-version>` or `latest`.
+- **You want to track the newest supported major:**
+  - Use `latest`.
 
 ### Tips
 
@@ -445,4 +449,4 @@ The Dockerfile accepts a build arg `ACTUAL_API_VERSION` and CI publishes images 
 ### Compose Defaults
 
 - The provided `docker-compose.yml` uses `api-${ACTUAL_API_MAJOR}` by default; set `ACTUAL_API_MAJOR` in your `.env` (e.g. `25`).
-- Alternatively, use `:api-stable` to always follow the newest supported API major automatically.
+- Alternatively, use `:latest` to always follow the newest supported API major automatically.

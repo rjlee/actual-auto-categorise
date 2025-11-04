@@ -2,13 +2,15 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies for native modules (hnswlib-node, etc.)
+# Install build dependencies for native modules (tfjs-node, hnswlib-node)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 build-essential \
+    && apt-get install -y --no-install-recommends python3 make g++ cmake \
     && rm -rf /var/lib/apt/lists/*
 
 # Disable git hooks/husky during image build; dependency scripts still run
 ENV HUSKY=0
+ENV PYTHON=/usr/bin/python3
+ENV npm_config_python=/usr/bin/python3
 
 # Install JS dependencies and prune dev dependencies for a lean build
 ARG ACTUAL_API_VERSION
@@ -18,9 +20,9 @@ COPY package*.json ./
 RUN npm pkg delete scripts.prepare || true && \
     if [ -n "$ACTUAL_API_VERSION" ]; then \
       npm pkg set dependencies.@actual-app/api=$ACTUAL_API_VERSION && \
-      npm install --package-lock-only --ignore-scripts; \
+      npm install --package-lock-only --no-audit --no-fund; \
     fi && \
-    npm ci --omit=dev
+    npm ci --omit=dev --no-audit --no-fund
 
 # Copy application source
 COPY . .

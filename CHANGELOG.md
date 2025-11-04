@@ -1,3 +1,10 @@
+## [1.18.8](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.7...v1.18.8) (2025-11-04)
+
+
+### Bug Fixes
+
+* adopt reusable workflows; gate release on CI; nightly Docker build (amd64); ensure native build toolchain in Dockerfile; fix YAML; ignore workflows in Prettier ([c3e1fab](https://github.com/rjlee/actual-auto-categorise/commit/c3e1fab424bdb2fba2f76c7e1fe4ad3beb46e865))
+
 ## [1.18.7](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.6...v1.18.7) (2025-11-02)
 
 

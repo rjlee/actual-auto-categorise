@@ -1,18 +1,18 @@
-/** @type {import('jest').Config} */
+const collectCoverage = process.env.JEST_COVERAGE === 'true';
 const testPathIgnorePatterns = ['/node_modules/', '/dist/', '/resources/'];
 if (process.env.SKIP_WEB_UI_TESTS === 'true') {
-  // Skip Web UI E2E tests in restricted environments
   testPathIgnorePatterns.push('/tests/web-ui.test.js$');
 }
 
-/** @type {import('jest').Config} */
-module.exports = {
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+const config = {
   testEnvironment: 'node',
+  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  testMatch: ['**/tests/**/*.test.js'],
   setupFiles: ['<rootDir>/jest.setup.js'],
-  verbose: true,
-  // Disable automatic coverage collection in local tests
-  collectCoverage: false,
+  passWithNoTests: true,
+  verbose: process.env.JEST_VERBOSE === 'true',
+  collectCoverage,
+  coverageDirectory: 'coverage',
   testPathIgnorePatterns,
   modulePathIgnorePatterns: ['/resources/'],
   moduleNameMapper: {
@@ -21,3 +21,16 @@ module.exports = {
       '<rootDir>/tests/mocks/universal-sentence-encoder.js',
   },
 };
+
+if (collectCoverage) {
+  config.coverageThreshold = {
+    global: {
+      branches: 50,
+      functions: 70,
+      lines: 80,
+      statements: 80,
+    },
+  };
+}
+
+module.exports = config;

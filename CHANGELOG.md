@@ -1,3 +1,10 @@
+## [1.18.11](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.10...v1.18.11) (2025-11-05)
+
+
+### Bug Fixes
+
+* standaardise jest config and improve test coverage ([7cd4d66](https://github.com/rjlee/actual-auto-categorise/commit/7cd4d669ff856265ab250dfbec7bb19b77d40c68))
+
 ## [1.18.10](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.9...v1.18.10) (2025-11-05)
 
 

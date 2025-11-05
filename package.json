@@ -1,7 +1,7 @@
 {
   "name": "actual-auto-categorise",
   "private": true,
-  "version": "1.18.8",
+  "version": "1.18.9",
   "description": "Transaction auto-classifier for Actual Budget using a KNN+Embed model",
   "main": "src/train.js",
   "scripts": {

@@ -42,5 +42,5 @@ LABEL org.opencontainers.image.revision="$GIT_SHA" \
       org.opencontainers.image.version="$APP_VERSION" \
       io.actual.api.version="$ACTUAL_API_VERSION"
 
-# Default command: run the cron-based daemon
-CMD ["npm", "run", "daemon"]
+ENTRYPOINT ["node", "src/index.js"]
+CMD ["--mode", "daemon"]

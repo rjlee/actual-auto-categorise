@@ -3,7 +3,10 @@ const { runClassification } = require('../src/classifier');
 const logger = require('../src/logger');
 
 jest.mock('../src/classifier');
-jest.mock('../src/logger');
+jest.mock('../src/logger', () => ({
+  info: jest.fn(),
+  error: jest.fn(),
+}));
 
 describe('CLI classify (classify.js)', () => {
   beforeEach(() => {

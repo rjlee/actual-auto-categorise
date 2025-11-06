@@ -1,3 +1,10 @@
+## [1.18.13](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.12...v1.18.13) (2025-11-06)
+
+
+### Bug Fixes
+
+* Standardise ENTRYPOINT ([0b4d134](https://github.com/rjlee/actual-auto-categorise/commit/0b4d1346a8cc333975e19877f3aa5b5b12ab9a3c))
+
 ## [1.18.12](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.11...v1.18.12) (2025-11-06)
 
 

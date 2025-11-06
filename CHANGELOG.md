@@ -1,3 +1,11 @@
+## [1.18.14](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.13...v1.18.14) (2025-11-06)
+
+
+### Bug Fixes
+
+* fix test and errors ([c4a8eec](https://github.com/rjlee/actual-auto-categorise/commit/c4a8eec7f8b41b1ce4a2c8055da96544d5430269))
+* improved signal heandling and structured logging ([1d15e58](https://github.com/rjlee/actual-auto-categorise/commit/1d15e5809ab39757e5c0ce65052d9a4d842f84d8))
+
 ## [1.18.13](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.12...v1.18.13) (2025-11-06)
 
 

@@ -11,6 +11,11 @@ const { URL } = require('url');
 const { startWebUi } = require('./web-ui');
 const { openBudget, closeBudget } = require('./utils');
 
+let currentBudgetOpen = false;
+let cronJobs = [];
+let uiServerPromise = null;
+let eventsCleanup = null;
+
 // Set up the classification cron job
 function scheduleClassification(verbose) {
   const disableCron =
@@ -37,7 +42,7 @@ function scheduleClassification(verbose) {
     { job: 'classification', schedule, timezone },
     'Starting classification daemon',
   );
-  cron.schedule(
+  const job = cron.schedule(
     schedule,
     async () => {
       const ts = new Date().toISOString();
@@ -51,6 +56,7 @@ function scheduleClassification(verbose) {
     },
     timezone ? { timezone } : {},
   );
+  cronJobs.push(job);
 }
 
 // Set up the weekly training cron job
@@ -77,7 +83,7 @@ function scheduleTraining(verbose) {
     'Scheduling weekly training',
   );
   let running = false;
-  cron.schedule(
+  const job = cron.schedule(
     schedule,
     async () => {
       const ts = new Date().toISOString();
@@ -101,25 +107,43 @@ function scheduleTraining(verbose) {
     },
     timezone ? { timezone } : {},
   );
+  cronJobs.push(job);
 }
 
 async function runDaemon({ verbose, ui, httpPort }) {
+  cronJobs.forEach((job) => job.stop?.());
+  cronJobs = [];
+  eventsCleanup = null;
+  uiServerPromise = null;
+  currentBudgetOpen = false;
+
   // Perform an initial budget download & sync when the daemon starts
   logger.info('Performing initial budget sync');
   try {
     await openBudget();
+    currentBudgetOpen = true;
     logger.info('Initial budget sync complete');
   } catch (err) {
     logger.error({ err }, 'Initial budget sync failed');
   } finally {
-    await closeBudget({ dirty: false });
+    if (currentBudgetOpen) {
+      await closeBudget({ dirty: false });
+      currentBudgetOpen = false;
+    }
   }
 
   const explicitPort =
     typeof config.httpPort !== 'undefined' ||
     typeof config.HTTP_PORT !== 'undefined' ||
     typeof process.env.HTTP_PORT !== 'undefined';
-  if (ui || explicitPort) startWebUi(httpPort, verbose);
+  if (ui || explicitPort) {
+    uiServerPromise = Promise.resolve(startWebUi(httpPort, verbose)).catch(
+      (err) => {
+        logger.error({ err }, 'Web UI server failed');
+        return null;
+      },
+    );
+  }
   scheduleClassification(verbose);
   scheduleTraining(verbose);
 
@@ -136,12 +160,44 @@ async function runDaemon({ verbose, ui, httpPort }) {
     process.env.EVENTS_AUTH_TOKEN ||
     '';
   if (enableEvents && eventsUrl) {
-    startEventsListener({ eventsUrl, authToken, verbose });
+    eventsCleanup = startEventsListener({ eventsUrl, authToken, verbose });
   } else if (enableEvents && !eventsUrl) {
     logger.warn(
       'ENABLE_EVENTS set but EVENTS_URL missing; skipping event listener',
     );
   }
+
+  const shutdown = async (signal) => {
+    logger.info({ signal }, 'Shutting down daemon');
+    try {
+      cronJobs.forEach((job) => job.stop?.());
+      cronJobs = [];
+      if (eventsCleanup) {
+        try {
+          await eventsCleanup();
+        } catch (err) {
+          logger.warn({ err }, 'Error during event listener cleanup');
+        }
+      }
+      if (uiServerPromise) {
+        const server = await uiServerPromise.catch(() => null);
+        if (server?.close) {
+          await new Promise((resolve) => server.close(resolve));
+        }
+        uiServerPromise = null;
+      }
+      if (currentBudgetOpen) {
+        await closeBudget();
+        currentBudgetOpen = false;
+      }
+    } catch (err) {
+      logger.error({ err }, 'Error during shutdown');
+    } finally {
+      process.exit(0);
+    }
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
 }
 
 module.exports = { runDaemon, scheduleClassification, scheduleTraining };
@@ -244,7 +300,15 @@ function startEventsListener({ eventsUrl, authToken, verbose }) {
     };
 
     connect();
+    return async () => {
+      try {
+        logger.info('Stopping event listener');
+      } catch (e) {
+        /* ignore */
+      }
+    };
   } catch (err) {
     logger.warn({ err }, 'Failed to start event listener');
+    return null;
   }
 }

@@ -58,6 +58,7 @@ async function main(args = process.argv.slice(2)) {
     })
     .help().argv;
   const { mode, dryRun, verbose, ui, httpPort } = argv;
+  logger.info({ mode }, 'Service starting');
   const useStructuredLogging = mode === 'daemon';
   // Use separate directories for data and budget cache
   const budgetDir =

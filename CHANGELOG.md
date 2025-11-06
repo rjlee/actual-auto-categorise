@@ -1,3 +1,10 @@
+## [1.18.12](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.11...v1.18.12) (2025-11-06)
+
+
+### Bug Fixes
+
+* fixed test ([3ea9751](https://github.com/rjlee/actual-auto-categorise/commit/3ea9751ca319d6a143b0157e074a5a1015d21647))
+
 ## [1.18.11](https://github.com/rjlee/actual-auto-categorise/compare/v1.18.10...v1.18.11) (2025-11-05)
 
 

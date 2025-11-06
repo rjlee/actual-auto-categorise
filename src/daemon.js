@@ -111,7 +111,7 @@ function scheduleTraining(verbose) {
 }
 
 async function runDaemon({ verbose, ui, httpPort }) {
-  cronJobs.forEach((job) => job.stop?.());
+  cronJobs.forEach((job) => job?.stop?.());
   cronJobs = [];
   eventsCleanup = null;
   uiServerPromise = null;
@@ -126,8 +126,14 @@ async function runDaemon({ verbose, ui, httpPort }) {
   } catch (err) {
     logger.error({ err }, 'Initial budget sync failed');
   } finally {
-    if (currentBudgetOpen) {
+    try {
       await closeBudget({ dirty: false });
+    } catch (closeErr) {
+      logger.warn(
+        { err: closeErr },
+        'Failed to close budget after initial sync',
+      );
+    } finally {
       currentBudgetOpen = false;
     }
   }

@@ -1,163 +1,3 @@
-# actual-auto-categorise
-
-This application trains a machine learning model on your categorized transactions in Actual Budget, and then uses it to auto-classify new unreconciled transactions.
-
-## Requirements
-
-- Node.js ≥20 (required for TensorFlow.js compatibility)
-- An instance of Actual Budget server running and accessible.
-
-## Quick start with Docker
-
-Copy `.env.example` to `.env` and fill in the required values (ACTUAL_SERVER_URL, ACTUAL_PASSWORD, ACTUAL_SYNC_ID).
-
-```bash
-# Build the Docker image
-docker build -t actual-auto-categorise .
-
-# Prepare required host dirs for data (model & budget)
-mkdir -p data data/budget
-
-# Run using your .env file
-docker run --rm --env-file .env actual-auto-categorise
-```
-
-You can also run one-off commands. For example, to classify only:
-
-```bash
-docker run --rm --env-file .env actual-auto-categorise npm start -- --mode classify
-```
-
-If you have Docker Compose installed:
-
-```bash
-docker-compose up -d
-```
-
-Then open your browser to `http://<HOST>:5007`, click **Train** to train the model, then **Classify** to categorize your transactions.
-
-## Setup
-
-> **Note:** Ensure you are running on Node.js ≥20. The Node ≥20 engine range is required for ABI compatibility with TensorFlow.js native bindings and WASM transformer support.
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-### Linting and formatting
-
-After installing dependencies, you can lint the code and enforce formatting:
-
-```bash
-npm run lint
-npm run lint:fix
-npm run format
-```
-
-#### Git hooks (pre-commit)
-
-To enable automatic lint-and-format on staged files, install the Husky pre-commit hook:
-
-```bash
-npm run prepare
-```
-
-This creates a Git pre-commit hook that runs lint-staged on your `.js` files.
-
-Configure environment variables in a `.env` file (or export them):
-
-```
-ACTUAL_SERVER_URL=http://localhost:5006
-ACTUAL_PASSWORD=your_actual_password
-ACTUAL_SYNC_ID=your_sync_id
-# Optional: path to store local training data and model outputs (default: ./data)
-DATA_DIR=./data
-# Optional: path to store local budget cache (downloaded budget files; default: ./data/budget)
-BUDGET_DIR=./data/budget
-# Legacy alias for BUDGET_DIR (deprecated)
-BUDGET_CACHE_DIR=./data/budget
-```
-
-> **Security note:** If connecting to a self-signed Actual Budget instance, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in your environment. This disables certificate verification and makes TLS/HTTPS requests insecure.
-
-You can also use a JSON or YAML config file (`config.json`, `config.yaml`, or `config.yml`) in the project root to set default CLI options:
-
-```yaml
-# config.yaml example
-# Base directory for training data and model outputs (default: ./data)
-dataDir: './data'
-# Base directory for budget data (downloaded budget files; default: ./data/budget)
-budgetDir: './data/budget'
-# Classification schedule (once an hour on the hour)
-CLASSIFY_CRON: '0 * * * *'
-CLASSIFY_CRON_TIMEZONE: UTC
-# Training schedule (once a week Monday at 06:30 UTC)
-TRAIN_CRON: '30 6 * * 1'
-TRAIN_CRON_TIMEZONE: UTC
-# Disable cron scheduling (daemon mode only; default: false)
-DISABLE_CRON_SCHEDULING: false
-# Logging level (info, debug, error)
-LOG_LEVEL: info
-# Classifier to use: 'ml' for Embed+KNN or 'tf' for TensorFlow.js (default: ml)
-CLASSIFIER_TYPE: ml
-```
-
-A sample YAML config file is provided in `config.example.yaml`. Copy it to `config.yaml` or `config.yml` in the project root and adjust as needed.
-
-See `.env.example` for all supported environment variables and defaults.
-
-## Training
-
-Retrieve past transactions and train the model (Embed+KNN by default):
-
-```bash
-# via unified CLI (Embed+KNN)
-npm start -- --mode train
-```
-
-```bash
-# Or TF.js classifier training
-CLASSIFIER_TYPE=tf npm start -- --mode train
-```
-
-The training run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
-On network or API errors during budget download, the training run will abort gracefully and wait until the next scheduled invocation.
-
-This will generate training data and save the model to `<DATA_DIR>/tx-classifier-knn`.
-
-> **Note:** The training data includes only reconciled transactions that already have a category.
-
-## Classification
-
-Retrieve new (unreconciled) transactions, classify them using the trained model, and update them in Actual Budget:
-
-```bash
-# via unified CLI
-npm start -- --mode classify [--dry-run] [--verbose]
-```
-
-The classification run downloads a copy of your budget into `<BUDGET_DIR>` (e.g. `./data/budget`). Previous budget files are not retained; each download overwrites the existing file in the cache directory.
-On network or API errors during budget download, the classification run will abort gracefully and wait until the next scheduled invocation.
-
-> **Note:** When run without `--dry-run`, the updated budget file is automatically uploaded. For on-budget accounts, a category is set only if missing; existing categories are not changed. Off-budget accounts are never assigned a category.
-
-> Budget scope: The classifier scans transactions from all accounts (on-budget and off-budget). However, it only sets a category for transactions in on-budget accounts.
-
-> Transfers: Transactions linked as transfers are excluded from categorization (they will not be sent to the classifier). This detection uses transaction-level indicators (e.g., `is_transfer`, `transferId`, `linkedTransactionId`).
-
-Options:
-
-- `--dry-run` perform classification without updating transactions
-- `--verbose` print each transaction and its predicted category
-
-## How the classifiers work
-
-This project supports two interchangeable classifier backends: the default Embed+KNN (ml) and an optional TensorFlow.js (tf) classifier. Select one via the `CLASSIFIER_TYPE` setting.
-
-### Embed+KNN classifier (default)
-
 Under the hood, this project uses a two-step Embed+KNN approach:
 
 1. **Text embedding**
@@ -441,3 +281,124 @@ We publish stable `@actual-app/api` versions (exact semver) plus `latest` (alias
 ### Compose Defaults
 
 - Set `ACTUAL_IMAGE_TAG` (e.g. `25.11.0`) in `.env` to pin to a specific semver tag, or leave it unset to follow `latest`.
+# actual-auto-categorise
+
+Auto-train and apply transaction categorisation for [Actual Budget](https://actualbudget.org/). The daemon keeps a local cache of your budget, trains a model on existing categories, then classifies new unreconciled transactions on a schedule or on demand.
+
+## Features
+
+- Embed+KNN classifier (default) with optional TensorFlow.js backend.
+- Web UI for manual train/classify cycles.
+- Cron-based daemon with SSE integration (via `actual-events`) for near-real-time updates.
+- Docker image with built-in health checks and budget cache volume.
+
+## Requirements
+
+- Node.js ≥ 20 (TensorFlow.js bindings require Node 20+).
+- Reachable Actual Budget server (`ACTUAL_SERVER_URL` + credentials).
+- Sufficient disk space for budget cache and model artefacts (default `./data`).
+
+## Installation
+
+```bash
+git clone https://github.com/rjlee/actual-auto-categorise.git
+cd actual-auto-categorise
+npm install
+```
+
+Enable lint-staged hooks (optional):
+
+```bash
+npm run prepare
+```
+
+### Docker
+
+```bash
+cp .env.example .env
+docker build -t actual-auto-categorise .
+mkdir -p data data/budget
+docker run --rm --env-file .env -v "$(pwd)/data:/app/data" actual-auto-categorise
+```
+
+Prebuilt images are published to `ghcr.io/rjlee/actual-auto-categorise:<tag>` (see [Image tags](#image-tags)).
+
+## Configuration
+
+- `.env` – copy `.env.example` and fill required values (`ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, `ACTUAL_SYNC_ID`).
+- `config.yaml`/`config.yml`/`config.json` – optional defaults for CLI/daemon flags; see `config.example.yaml` for available keys.
+
+Precedence: CLI flags > environment variables > config file defaults.
+
+Common keys:
+
+| Key | Description | Default |
+| --- | --- | --- |
+| `DATA_DIR` | Directory for training data/model outputs | `./data` |
+| `BUDGET_DIR` | Budget cache location | `./data/budget` |
+| `CLASSIFY_CRON` | Classification schedule | `0 * * * *` |
+| `TRAIN_CRON` | Training schedule | `30 6 * * 1` |
+| `DISABLE_CRON_SCHEDULING` | Disable cron in daemon mode | `false` |
+| `CLASSIFIER_TYPE` | `ml` or `tf` backend | `ml` |
+
+For self-signed Actual instances, set `NODE_TLS_REJECT_UNAUTHORIZED=0` (accepts insecure TLS).
+
+## Usage
+
+### One-off modes
+
+```bash
+# Train
+npm start -- --mode train
+
+# Classify (dry-run example)
+npm start -- --mode classify --dry-run
+```
+
+### Daemon mode
+
+```bash
+npm start -- --mode daemon --ui --http-port 5007
+```
+
+The daemon downloads the budget into `BUDGET_DIR`, runs scheduled train/classify jobs, serves the optional web UI and health check, and listens for events when `ENABLE_EVENTS=true` and `EVENTS_URL` is provided.
+
+### Docker examples
+
+```bash
+# Classify once
+docker run --rm --env-file .env ghcr.io/rjlee/actual-auto-categorise:latest --mode classify
+
+# Daemon with UI and persistent state
+docker run -d --env-file .env \
+  -p 5007:5007 \
+  -v "$(pwd)/data:/app/data" \
+  ghcr.io/rjlee/actual-auto-categorise:latest --mode daemon --ui --http-port 5007
+```
+
+## Testing & linting
+
+```bash
+npm test
+npm run lint        # reports issues
+npm run lint:fix    # auto-fixes ESLint
+npm run format      # Prettier write
+npm run format:check
+```
+
+## Image tags
+
+- `ghcr.io/rjlee/actual-auto-categorise:<semver>` – pinned API version (match your Actual server’s `@actual-app/api` line).
+- `ghcr.io/rjlee/actual-auto-categorise:latest` – highest supported API release.
+
+See [rjlee/actual-auto-ci](https://github.com/rjlee/actual-auto-ci) for release automation and tag policy.
+
+## Troubleshooting
+
+- Budget cache errors: ensure `BUDGET_DIR` is writable and credentials are correct.
+- TensorFlow.js issues: confirm Node 20+ and install optional GPU bindings if required.
+- Event listener delays: adjust `LOOKBACK_DAYS`, `SCAN_INTERVAL_MS`, or integrate with `actual-events`.
+
+## License
+
+MIT © contributors. See repository for details.

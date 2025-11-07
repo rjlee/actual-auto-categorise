@@ -1,170 +1,127 @@
-Under the hood, this project uses a two-step Embed+KNN approach:
+# actual-auto-categorise
 
-1. **Text embedding**
-   We use a WASM-backed transformer model (`Xenova/all-MiniLM-L6-v2`) to convert each transaction description into a fixed-length vector. Mean-pooling is applied across token embeddings to produce a single embedding per description.
+Automatic transaction categorisation for Actual Budget. Trains local models, serves a CLI/daemon, and ships a Docker image so you can keep categories tidy without leaving your automation stack.
 
-2. **K-Nearest Neighbors classification**
+## Features
 
-- During training (`npm start -- --mode train`), reconciled transactions with existing categories are embedded and stored in `<DATA_DIR>/tx-classifier-knn`:
-  - `meta.json` contains the number of neighbors (k), category labels, and embedding dimension.
-  - `embeddings.bin` contains the saved embedding vectors.
-- At prediction time (`npm start -- --mode classify`), new transaction descriptions are embedded the same way and normalized to unit length. We build an in-memory HNSW index (via `hnswlib-node`) over the training embeddings and perform an exact kNN search using cosine similarity.
-- The predicted category is chosen by a majority vote among the k nearest neighbors.
+- Embedding + KNN classifier by default, with optional TensorFlow.js model for experimentation.
+- `train`, `classify`, and long-running `daemon` modes with consistent logging and graceful shutdown.
+- Cron-based scheduling with optional `actual-events` stream integration for near real-time updates.
+- Optional Web UI (session auth + TLS) for triggering runs and checking status.
+- Docker image with baked-in health check, Node.js 22 base image, and bind-mount friendly data directory.
 
-This approach lets us efficiently classify transactions based on semantic textual similarity, without requiring an external service or GPU.
+## Requirements
 
-### TensorFlow.js classifier
+- Node.js ≥ 22.
+- Actual Budget server credentials (`ACTUAL_SERVER_URL`, `ACTUAL_PASSWORD`, `ACTUAL_SYNC_ID`).
+- Writable data directory for embeddings, TensorFlow assets, and the budget cache (defaults to `./data`).
 
-The TensorFlow.js classifier uses a saved Layers model and the Universal Sentence Encoder for end-to-end neural classification.
-
-1. **Text embedding**
-   We use the Universal Sentence Encoder (via `@tensorflow-models/universal-sentence-encoder` + `@tensorflow/tfjs-node`) to embed each description into a fixed-length vector.
-
-2. **Neural classification**
-   A pre-trained TensorFlow.js Layers model (`model.json` + weight files) loads from disk, accepts the embeddings as input, and outputs a score per category. The highest-scoring category is chosen for each transaction.
-
-### Classifier comparison
-
-| Feature               | Embed+KNN (ml)                                   | TensorFlow.js (tf)                            |
-| :-------------------- | :----------------------------------------------- | :-------------------------------------------- |
-| Training time         | Fast (seconds–minutes) on CPU                    | Slower (minutes to hours; neural training)    |
-| Inference speed       | Very fast (µs per sample)                        | Moderate (ms per batch)                       |
-| CPU requirements      | Pure JS; no native addons                        | Requires `tfjs-node` native binding           |
-| GPU support           | No GPU acceleration                              | Optional GPU with `tfjs-node-gpu`             |
-| Dependencies          | Lightweight (JS only)                            | Heavy (tfjs-core, tfjs-node, USE)             |
-| Model size            | Small (meta+bin ≈ few MB)                        | Moderate (model.json + shards ≈ tens of MB)   |
-| Node.js compatibility | Node.js ≥20                                      | Node.js ≥20                                   |
-| Flexibility           | Fixed kNN algorithm                              | Configurable neural network topology          |
-| Accuracy              | Good baseline accuracy through nearest neighbors | Potentially higher with neural network tuning |
-| Accuracy tuning       | Limited to k and embeddings                      | Tunable network architecture and parameters   |
-
-## Daemon (scheduled classification)
-
-Instead of running classification as a one-off, you can launch a background daemon that periodically classifies and applies new transactions on a cron schedule.
-
-> **Note:** The daemon assumes a pre-trained model is already available in the data directory (`<DATA_DIR>/tx-classifier-knn`). Be sure to run the training step (`npm start -- --mode train`) at least once before starting the daemon.
-
-1. Install dependencies (node-cron is included):
-
-   ```bash
-   npm install
-   ```
-
-2. Configure your desired cron expression and optional timezone via environment variables or config file (defaults to every hour on the hour UTC):
-
-   ```bash
-   # run every hour on the hour (default)
-   export CLASSIFY_CRON="0 * * * *"
-   export CLASSIFY_CRON_TIMEZONE="UTC"
-   ```
-
-3. Start the daemon:
-
-   ```bash
-   npm start -- --mode daemon
-   ```
-
-   On startup, the daemon will perform an initial budget download & sync before running any scheduled tasks.
-
-### Optional Web UI
-
-You can enable the web UI by either passing `--ui` **or** setting the `HTTP_PORT` environment variable (or `httpPort` in a config file). For example:
+## Installation
 
 ```bash
-# Start daemon with UI via flag (default port 3000)
-npm start -- --mode daemon --ui
-
-# Or set HTTP_PORT to auto-enable UI on port 5007:
-export HTTP_PORT=5007
-npm start -- --mode daemon
+git clone https://github.com/rjlee/actual-auto-categorise.git
+cd actual-auto-categorise
+npm install
 ```
 
-The web UI is served on the configured port and presents a page with the application title and buttons for **Train** and **Classify**.
-
-You can also override the port directly on the command line:
+Optional git hooks:
 
 ```bash
-npm start -- --mode daemon --ui --http-port 8080
+npm run prepare
 ```
 
-#### Web UI authentication
-
-Session-based UI authentication is enabled by default. A signed session cookie is used (
-`cookie-session` with a shared secret). The signing key comes from `SESSION_SECRET` (falling back to `ACTUAL_PASSWORD` if unset).
-
-Set your password and session secret:
+### Docker quick start
 
 ```bash
-ACTUAL_PASSWORD=yourBudgetPassword
-SESSION_SECRET=someLongRandomString
-# To disable login form:
-UI_AUTH_ENABLED=false
+cp .env.example .env
+docker build -t actual-auto-categorise .
+mkdir -p data/budget
+docker run -d --env-file .env \
+  -p 5007:5007 \
+  -v "$(pwd)/data:/app/data" \
+  actual-auto-categorise --mode daemon --ui --http-port 5007
 ```
 
-#### Web UI TLS/HTTPS
+Published images live at `ghcr.io/rjlee/actual-auto-categorise:<tag>` (see [Image tags](#image-tags)).
 
-To serve the Web UI over HTTPS (recommended in production), set:
+## Configuration
+
+- `.env` – primary configuration, copy from `.env.example`.
+- `config.yaml` / `config.yml` / `config.json` – optional defaults, copy from `config.example.yaml`.
+
+Precedence: CLI flags > environment variables > config file.
+
+| Setting                                              | Description                              | Default                      |
+| ---------------------------------------------------- | ---------------------------------------- | ---------------------------- |
+| `BUDGET_DIR` (`BUDGET_CACHE_DIR`)                    | Budget cache location                    | `./data/budget`              |
+| `DATA_DIR`                                           | Training data + model artefacts          | `./data`                     |
+| `CLASSIFIER_TYPE`                                    | `ml` (embed+KNN) or `tf` (TensorFlow)    | `ml`                         |
+| `LOG_LEVEL`                                          | Pino log level                           | `info`                       |
+| `CLASSIFY_CRON` / `CLASSIFY_CRON_TIMEZONE`           | Classification schedule                  | `0 * * * *` / `UTC`          |
+| `TRAIN_CRON` / `TRAIN_CRON_TIMEZONE`                 | Weekly training schedule                 | `30 6 * * 1` / `UTC`         |
+| `DISABLE_CRON_SCHEDULING`                            | Disable cron when running daemon         | `false`                      |
+| `ENABLE_EVENTS` / `EVENTS_URL` / `EVENTS_AUTH_TOKEN` | Hook into `actual-events` SSE stream     | disabled                     |
+| `HTTP_PORT`                                          | Enables Web UI when set or `--ui` passed | `3000`                       |
+| `UI_AUTH_ENABLED`, `SESSION_SECRET`                  | Session-auth toggle and cookie secret    | `true`, fallback to password |
+| `SSL_KEY`, `SSL_CERT`                                | Optional TLS for the Web UI              | unset                        |
+| `TF_TRAIN_*`, `EMBED_BATCH_SIZE`                     | Advanced ML tuning knobs                 | see `.env.example`           |
+
+## Usage
+
+### CLI modes
+
+- Train models: `npm run train` (alias for `npm start -- --mode train`).
+- Classify once: `npm run classify` (`--mode classify`).
+- Cron daemon: `npm run daemon` with optional `--ui`, `--http-port`, `--classifier-type tf`.
+
+### Event-triggered classification
+
+Set `ENABLE_EVENTS=true` and point `EVENTS_URL` at your `actual-events` instance to debounce and trigger classification runs shortly after new transactions arrive. Cron remains active as a safety net unless `DISABLE_CRON_SCHEDULING=true`.
+
+### Docker daemon
 
 ```bash
-SSL_KEY=/path/to/privkey.pem    # path to SSL private key
-SSL_CERT=/path/to/fullchain.pem # path to SSL certificate chain
+docker run -d --env-file .env \
+  -p 5007:5007 \
+  -v "$(pwd)/data:/app/data" \
+  ghcr.io/rjlee/actual-auto-categorise:latest --mode daemon --ui --http-port 5007
 ```
 
-Each run logs its start time and the number of updates applied. Errors are caught and logged without stopping the schedule.
-
-## Security Considerations
-
-> **Web UI security:** The Web UI displays your Actual Budget data in your browser.
-
-- **Session-based UI authentication** (enabled by default): requires a signed session cookie (`cookie-session` with `SESSION_SECRET`).
-  To disable the login form (open access), set `UI_AUTH_ENABLED=false`.
+## Testing & linting
 
 ```bash
-ACTUAL_PASSWORD=yourBudgetPassword
-SESSION_SECRET=someLongRandomString
-# To disable login form:
-UI_AUTH_ENABLED=false
+npm test
+npm run test:coverage
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
 ```
 
-- **TLS/HTTPS:** strongly recommended for production. Set your SSL key and cert:
+## Image tags
 
-```bash
-SSL_KEY=/path/to/privkey.pem    # path to SSL private key
-SSL_CERT=/path/to/fullchain.pem # path to SSL certificate chain
-```
+- `ghcr.io/rjlee/actual-auto-categorise:<semver>` – pinned to a specific `@actual-app/api` release.
+- `ghcr.io/rjlee/actual-auto-categorise:latest` – highest supported API version.
 
-**Disable Web UI:** omit `--ui` or remove the `HTTP_PORT` setting (local), or comment out the web service in Docker Compose.
+See [rjlee/actual-auto-ci](https://github.com/rjlee/actual-auto-ci) for release automation and tag policy.
 
-- **Protect budget cache:** your `BUDGET_DIR` (or legacy `BUDGET_CACHE_DIR`) contains sensitive transaction details; secure it with proper filesystem permissions.
+## License
 
-Each run logs its start time and the number of updates applied. Errors are caught and logged without stopping the schedule.
+MIT © contributors.
 
-The daemon also prevents overlapping classification runs: if a previous classification run is still in progress when the next schedule fires, it will skip that interval.
-
-In addition, the daemon schedules a weekly training run (default: every Monday at 06:30 UTC):
-
-```bash
-# run once a week on Monday at 06:30 UTC (default)
-export TRAIN_CRON="30 6 * * 1"
-export TRAIN_CRON_TIMEZONE="UTC"
-```
-
-Invalid cron expressions for `CLASSIFY_CRON` or `TRAIN_CRON` will cause the daemon to exit on startup.
-
-### Optional: Event-based triggers (actual-events)
-
-You can optionally listen to events from the companion `actual-events` sidecar to trigger near-real-time classification when new transactions arrive. This runs alongside the cron-based daemon (cron remains as a fallback) and debounces bursts of events to avoid redundant runs.
-
-Enable and configure via environment variables (or your config file):
-
-```bash
 # Enable the event listener
+
 ENABLE_EVENTS=true
+
 # Point to the actual-events SSE endpoint; include filters in the URL if desired
+
 EVENTS_URL=http://localhost:4000/events
+
 # Optional bearer token if actual-events requires auth
+
 EVENTS_AUTH_TOKEN=your-token
-```
+
+````
 
 By default, the listener subscribes to `transaction.created` and `transaction.updated` events and triggers a classification run shortly after changes are detected. If you include your own query params in `EVENTS_URL`, they will be respected (otherwise defaults are applied).
 
@@ -175,7 +132,7 @@ We use Jest for unit tests and GitHub Actions for continuous integration.
 ```bash
 # Run tests locally
 npm test
-```
+````
 
 On each push and pull request to `main`, GitHub Actions runs linting (`npm run lint`), formatting checks (`npm run format:check`), installs dependencies (`npm ci`), and runs tests (`npm test`) as part of the unified Release pipeline.
 

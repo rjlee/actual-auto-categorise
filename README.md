@@ -281,6 +281,7 @@ We publish stable `@actual-app/api` versions (exact semver) plus `latest` (alias
 ### Compose Defaults
 
 - Set `ACTUAL_IMAGE_TAG` (e.g. `25.11.0`) in `.env` to pin to a specific semver tag, or leave it unset to follow `latest`.
+
 # actual-auto-categorise
 
 Auto-train and apply transaction categorisation for [Actual Budget](https://actualbudget.org/). The daemon keeps a local cache of your budget, trains a model on existing categories, then classifies new unreconciled transactions on a schedule or on demand.
@@ -332,14 +333,14 @@ Precedence: CLI flags > environment variables > config file defaults.
 
 Common keys:
 
-| Key | Description | Default |
-| --- | --- | --- |
-| `DATA_DIR` | Directory for training data/model outputs | `./data` |
-| `BUDGET_DIR` | Budget cache location | `./data/budget` |
-| `CLASSIFY_CRON` | Classification schedule | `0 * * * *` |
-| `TRAIN_CRON` | Training schedule | `30 6 * * 1` |
-| `DISABLE_CRON_SCHEDULING` | Disable cron in daemon mode | `false` |
-| `CLASSIFIER_TYPE` | `ml` or `tf` backend | `ml` |
+| Key                       | Description                               | Default         |
+| ------------------------- | ----------------------------------------- | --------------- |
+| `DATA_DIR`                | Directory for training data/model outputs | `./data`        |
+| `BUDGET_DIR`              | Budget cache location                     | `./data/budget` |
+| `CLASSIFY_CRON`           | Classification schedule                   | `0 * * * *`     |
+| `TRAIN_CRON`              | Training schedule                         | `30 6 * * 1`    |
+| `DISABLE_CRON_SCHEDULING` | Disable cron in daemon mode               | `false`         |
+| `CLASSIFIER_TYPE`         | `ml` or `tf` backend                      | `ml`            |
 
 For self-signed Actual instances, set `NODE_TLS_REJECT_UNAUTHORIZED=0` (accepts insecure TLS).
 

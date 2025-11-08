@@ -300,18 +300,14 @@ function startEventsListener({ eventsUrl, authToken, verbose }) {
           }
           triggerDebounced({ verbose, delayMs: 1500 });
         }
-      } catch (e) {
-        // Ignore parse errors
+      } catch (err) {
+        logger.debug({ err }, 'Ignoring malformed SSE payload');
       }
     };
 
     connect();
     return async () => {
-      try {
-        logger.info('Stopping event listener');
-      } catch (e) {
-        /* ignore */
-      }
+      logger.info('Stopping event listener');
     };
   } catch (err) {
     logger.warn({ err }, 'Failed to start event listener');

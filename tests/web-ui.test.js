@@ -64,6 +64,7 @@ function createReq(overrides = {}) {
     body: {},
     session: {},
     query: {},
+    headers: {},
     ...overrides,
   };
 }
@@ -92,22 +93,28 @@ describe('Web UI server', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.UI_AUTH_ENABLED = 'false';
     express.__reset();
     startWebUi(0, false);
     app = express.__getLastApp();
   });
 
-  afterEach(() => {
-    delete process.env.UI_AUTH_ENABLED;
-  });
+  afterEach(() => {});
 
-  test('GET / renders HTML with action buttons', async () => {
+  test('GET / renders HTML with action buttons and logout when authenticated', async () => {
     const res = createRes();
-    await getHandler(app, 'get', '/')({}, res);
+    const req = createReq({ headers: { cookie: 'actual-auth=token' } });
+    await getHandler(app, 'get', '/')(req, res);
     const [html] = res.send.mock.calls[0];
     expect(html).toMatch(/id="trainBtn"/);
     expect(html).toMatch(/id="classifyBtn"/);
+    expect(html).toMatch(/action="\/auth\/logout"/);
+  });
+
+  test('GET / hides logout button when no auth cookie present', async () => {
+    const res = createRes();
+    await getHandler(app, 'get', '/')(createReq(), res);
+    const [html] = res.send.mock.calls[0];
+    expect(html).not.toMatch(/action="\/auth\/logout"/);
   });
 
   test('POST /train runs training and returns success message', async () => {

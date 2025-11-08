@@ -2,7 +2,6 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 
-const cookieSession = require('cookie-session');
 const ejs = require('ejs');
 const express = require('express');
 
@@ -10,10 +9,22 @@ const logger = require('./logger');
 const { runClassification } = require('./classifier');
 const { runTraining } = require('./train');
 
-function uiPageHtml(uiAuthEnabled) {
+const DEFAULT_COOKIE_NAME = 'actual-auth';
+
+function hasAuthCookie(req) {
+  const cookieName =
+    process.env.AUTH_COOKIE_NAME?.trim() || DEFAULT_COOKIE_NAME;
+  const cookieHeader = req.headers?.cookie || '';
+  return cookieHeader
+    .split(';')
+    .map((part) => part.trim())
+    .some((part) => part.startsWith(`${cookieName}=`));
+}
+
+function uiPageHtml({ showLogoutButton }) {
   const templatePath = path.join(__dirname, 'views', 'index.ejs');
   const template = fs.readFileSync(templatePath, 'utf8');
-  return ejs.render(template, { uiAuthEnabled }, { filename: templatePath });
+  return ejs.render(template, { showLogoutButton }, { filename: templatePath });
 }
 
 function startWebUi(httpPort, verbose) {
@@ -31,64 +42,12 @@ function startWebUi(httpPort, verbose) {
     return server;
   }
 
-  const UI_AUTH_ENABLED = process.env.UI_AUTH_ENABLED !== 'false';
-  if (UI_AUTH_ENABLED) {
-    const SECRET = process.env.ACTUAL_PASSWORD;
-    if (!SECRET) {
-      logger.error('ACTUAL_PASSWORD must be set to enable UI authentication');
-      process.exit(1);
-    }
-    app.use(express.urlencoded({ extended: false }));
-
-    app.use(
-      cookieSession({
-        name: 'session',
-        keys: [process.env.SESSION_SECRET || SECRET],
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-        httpOnly: true,
-        secure: Boolean(process.env.SSL_KEY && process.env.SSL_CERT),
-        sameSite: 'strict',
-      }),
-    );
-
-    const LOGIN_PATH = '/login';
-    /* eslint-disable no-inner-declarations */
-    function loginForm(error) {
-      const templatePath = path.join(__dirname, 'views', 'login.ejs');
-      const template = fs.readFileSync(templatePath, 'utf8');
-      return ejs.render(
-        template,
-        { error, LOGIN_PATH },
-        { filename: templatePath },
-      );
-    }
-
-    app.get(LOGIN_PATH, (_req, res) => res.send(loginForm()));
-    app.post(LOGIN_PATH, (req, res) => {
-      if (req.body.password === SECRET) {
-        req.session.authenticated = true;
-        return res.redirect(req.query.next || '/');
-      }
-      return res.status(401).send(loginForm('Invalid password'));
-    });
-
-    app.use((req, res, next) => {
-      if (req.session.authenticated) {
-        return next();
-      }
-      return res.send(loginForm());
-    });
-
-    app.post('/logout', (req, res) => {
-      req.session = null;
-      res.redirect(LOGIN_PATH);
-    });
-  }
-
   let trainLock = false;
   let classifyLock = false;
 
-  app.get('/', (_req, res) => res.send(uiPageHtml(UI_AUTH_ENABLED)));
+  app.get('/', (req, res) =>
+    res.send(uiPageHtml({ showLogoutButton: hasAuthCookie(req) })),
+  );
   app.post('/train', async (_req, res) => {
     if (trainLock) {
       return res.status(409).json({ message: 'Training already in progress' });

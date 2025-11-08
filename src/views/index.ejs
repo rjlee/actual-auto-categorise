@@ -4,9 +4,9 @@
     <div class="d-flex justify-content-center gap-3">
       <button id="trainBtn" class="btn btn-primary btn-lg">Train</button>
       <button id="classifyBtn" class="btn btn-success btn-lg">Classify</button>
-      <% if (uiAuthEnabled) { %>
-        <form method="POST" action="/logout" class="m-0">
-          <button type="submit" class="btn btn-warning btn-lg">Logout</button>
+      <% if (showLogoutButton) { %>
+        <form method="POST" action="/auth/logout" class="m-0">
+          <button type="submit" class="btn btn-outline-secondary btn-lg">Logout</button>
         </form>
       <% } %>
     </div>

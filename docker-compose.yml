@@ -1,15 +1,53 @@
 services:
+  traefik:
+    image: traefik:2.11
+    container_name: actual-auto-categorise-traefik
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - '${HTTP_PORT:-3000}:80'
+    networks:
+      - categorise
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - actual-auto-categorise
+      - actual-auth-proxy
+
+  actual-auth-proxy:
+    image: ${AUTH_FORWARD_IMAGE:-ghcr.io/rjlee/actual-auto-auth:latest}
+    pull_policy: always
+    container_name: actual-auto-categorise-auth
+    environment:
+      ACTUAL_PASSWORD: ${ACTUAL_PASSWORD:?ACTUAL_PASSWORD must be set}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      AUTH_APP_NAME: ${AUTH_APP_NAME:-Actual Auto Categorise}
+      PORT: 4000
+    networks:
+      - categorise
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.categorise-auth.rule=PathPrefix(`/auth`)
+      - traefik.http.routers.categorise-auth.entrypoints=web
+      - traefik.http.routers.categorise-auth.priority=100
+      - traefik.http.services.categorise-auth.loadbalancer.server.port=4000
+      - traefik.http.middlewares.actual-auth-forward.forwardauth.address=http://actual-auto-categorise-auth:4000/check
+      - traefik.http.middlewares.actual-auth-forward.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.actual-auth-forward.forwardauth.authResponseHeaders=Set-Cookie
+
   actual-auto-categorise:
     image: ghcr.io/rjlee/actual-auto-categorise:${ACTUAL_IMAGE_TAG:-latest}
     container_name: actual-auto-categorise
     env_file:
       - .env
-    # Expose the web UI port (default HTTP_PORT or 3000)
-    ports:
-      - '${HTTP_PORT:-3000}:${HTTP_PORT:-3000}'
     restart: unless-stopped
+    depends_on:
+      - actual-auth-proxy
+    networks:
+      - categorise
     volumes:
-      # Persist data (model, budget, etc.) in the data directory
       - type: bind
         source: ./data
         target: /app/data
@@ -18,3 +56,13 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.categorise.rule=PathPrefix(`/`) && !PathPrefix(`/auth`)
+      - traefik.http.routers.categorise.entrypoints=web
+      - traefik.http.routers.categorise.middlewares=actual-auth-forward@docker
+      - traefik.http.services.categorise.loadbalancer.server.port=${HTTP_PORT:-3000}
+
+networks:
+  categorise:
+    driver: bridge

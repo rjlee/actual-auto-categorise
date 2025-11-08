@@ -7,7 +7,7 @@ Automatic transaction categorisation for Actual Budget. Trains local models, ser
 - Embedding + KNN classifier by default, with optional TensorFlow.js model for experimentation.
 - `train`, `classify`, and long-running `daemon` modes with consistent logging and graceful shutdown.
 - Cron-based scheduling with optional `actual-events` stream integration for near real-time updates.
-- Optional Web UI (session auth + TLS) for triggering runs and checking status.
+- Optional Web UI for triggering runs and checking status (fronted by Traefik for auth).
 - Docker image with baked-in health check, Node.js 22 base image, and bind-mount friendly data directory.
 
 ## Requirements
@@ -44,6 +44,8 @@ docker run -d --env-file .env \
 
 Published images live at `ghcr.io/rjlee/actual-auto-categorise:<tag>` (see [Image tags](#image-tags)).
 
+> `docker-compose.yml` includes Traefik plus the shared `actual-auto-auth` forwarder (pulled from GHCR). Set `AUTH_APP_NAME` to control the login heading shown to operators, override the image with `AUTH_FORWARD_IMAGE` if you pin a specific tag, and keep `AUTH_COOKIE_NAME` in sync with the proxy so the logout button appears when you’re authenticated.
+
 ## Configuration
 
 - `.env` – primary configuration, copy from `.env.example`.
@@ -51,20 +53,22 @@ Published images live at `ghcr.io/rjlee/actual-auto-categorise:<tag>` (see [Imag
 
 Precedence: CLI flags > environment variables > config file.
 
-| Setting                                              | Description                              | Default                      |
-| ---------------------------------------------------- | ---------------------------------------- | ---------------------------- |
-| `BUDGET_DIR` (`BUDGET_CACHE_DIR`)                    | Budget cache location                    | `./data/budget`              |
-| `DATA_DIR`                                           | Training data + model artefacts          | `./data`                     |
-| `CLASSIFIER_TYPE`                                    | `ml` (embed+KNN) or `tf` (TensorFlow)    | `ml`                         |
-| `LOG_LEVEL`                                          | Pino log level                           | `info`                       |
-| `CLASSIFY_CRON` / `CLASSIFY_CRON_TIMEZONE`           | Classification schedule                  | `0 * * * *` / `UTC`          |
-| `TRAIN_CRON` / `TRAIN_CRON_TIMEZONE`                 | Weekly training schedule                 | `30 6 * * 1` / `UTC`         |
-| `DISABLE_CRON_SCHEDULING`                            | Disable cron when running daemon         | `false`                      |
-| `ENABLE_EVENTS` / `EVENTS_URL` / `EVENTS_AUTH_TOKEN` | Hook into `actual-events` SSE stream     | disabled                     |
-| `HTTP_PORT`                                          | Enables Web UI when set or `--ui` passed | `3000`                       |
-| `UI_AUTH_ENABLED`, `SESSION_SECRET`                  | Session-auth toggle and cookie secret    | `true`, fallback to password |
-| `SSL_KEY`, `SSL_CERT`                                | Optional TLS for the Web UI              | unset                        |
-| `TF_TRAIN_*`, `EMBED_BATCH_SIZE`                     | Advanced ML tuning knobs                 | see `.env.example`           |
+| Setting                                              | Description                                 | Default                                 |
+| ---------------------------------------------------- | ------------------------------------------- | --------------------------------------- |
+| `BUDGET_DIR` (`BUDGET_CACHE_DIR`)                    | Budget cache location                       | `./data/budget`                         |
+| `DATA_DIR`                                           | Training data + model artefacts             | `./data`                                |
+| `CLASSIFIER_TYPE`                                    | `ml` (embed+KNN) or `tf` (TensorFlow)       | `ml`                                    |
+| `LOG_LEVEL`                                          | Pino log level                              | `info`                                  |
+| `CLASSIFY_CRON` / `CLASSIFY_CRON_TIMEZONE`           | Classification schedule                     | `0 * * * *` / `UTC`                     |
+| `TRAIN_CRON` / `TRAIN_CRON_TIMEZONE`                 | Weekly training schedule                    | `30 6 * * 1` / `UTC`                    |
+| `DISABLE_CRON_SCHEDULING`                            | Disable cron when running daemon            | `false`                                 |
+| `ENABLE_EVENTS` / `EVENTS_URL` / `EVENTS_AUTH_TOKEN` | Hook into `actual-events` SSE stream        | disabled                                |
+| `HTTP_PORT`                                          | Enables Web UI when set or `--ui` passed    | `3000`                                  |
+| `SSL_KEY`, `SSL_CERT`                                | Optional TLS for the Web UI                 | unset                                   |
+| `AUTH_FORWARD_IMAGE`                                 | Auth proxy image pulled by Docker Compose   | `ghcr.io/rjlee/actual-auto-auth:latest` |
+| `AUTH_APP_NAME`                                      | Text shown on the shared login screen       | `Actual Auto Categorise`                |
+| `AUTH_COOKIE_NAME`                                   | Cookie name issued by the shared auth proxy | `actual-auth`                           |
+| `TF_TRAIN_*`, `EMBED_BATCH_SIZE`                     | Advanced ML tuning knobs                    | see `.env.example`                      |
 
 ## Usage
 

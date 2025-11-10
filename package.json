@@ -52,7 +52,7 @@
     "@semantic-release/github": "^9.0.0",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "eslint": "^9.39.1",
-    "globals": "^15.14.0",
+    "globals": "^16.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.0",

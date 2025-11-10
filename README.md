@@ -46,6 +46,13 @@ Published images live at `ghcr.io/rjlee/actual-auto-categorise:<tag>` (see [Imag
 
 > `docker-compose.yml` includes Traefik plus the shared `actual-auto-auth` forwarder (pulled from GHCR). Set `AUTH_APP_NAME` to control the login heading shown to operators, override the image with `AUTH_FORWARD_IMAGE` if you pin a specific tag, and keep `AUTH_COOKIE_NAME` in sync with the proxy so the logout button appears when you’re authenticated.
 
+For Compose users, two sample manifests are provided:
+
+- `docker-compose.no-auth.yml.example` – exposes the web UI directly on `HTTP_PORT`.
+- `docker-compose.with-auth.yml.example` – bundles Traefik + `actual-auto-auth`
+  so operators must authenticate before accessing the UI (the existing
+  `docker-compose.yml` mirrors this setup for backward compatibility).
+
 ## Configuration
 
 - `.env` – primary configuration, copy from `.env.example`.

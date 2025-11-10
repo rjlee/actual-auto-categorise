@@ -1,0 +1,19 @@
+services:
+  actual-auto-categorise:
+    image: ghcr.io/rjlee/actual-auto-categorise:${ACTUAL_IMAGE_TAG:-latest}
+    container_name: actual-auto-categorise
+    env_file:
+      - ./.env
+    command: ['--mode', 'daemon', '--ui', '--http-port', '${HTTP_PORT:-3000}']
+    restart: unless-stopped
+    ports:
+      - '${HTTP_PORT:-3000}:${HTTP_PORT:-3000}'
+    volumes:
+      - type: bind
+        source: ./data
+        target: /app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'

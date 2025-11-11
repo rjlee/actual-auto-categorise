@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.0...v1.1.0) (2025-11-11)
+
+
+### Bug Fixes
+
+* fixing test ([722f211](https://github.com/rjlee/actual-auto-categorise/commit/722f211e7efa33ceb2d4b199b00d02b6159b4323))
+* removed deprecated husky command ([3a245d5](https://github.com/rjlee/actual-auto-categorise/commit/3a245d53b47d0252ab0abe09231f621d63396a5c))
+
+
+### Features
+
+* split auth/no-auth compose samples ([d036c6a](https://github.com/rjlee/actual-auto-categorise/commit/d036c6a9966181c2e6b6b8a7f4d8a1baf1c18f3b))
+
 # 1.0.0 (2025-11-08)
 
 

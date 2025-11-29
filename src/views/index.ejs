@@ -15,10 +15,22 @@
   <script>
     const statusEl = document.getElementById('status');
 
-    async function triggerAction(url, pendingText) {
+    const basePath = (() => {
+      const path = window.location.pathname;
+      if (path.endsWith('/')) return path;
+      const trimmed = path.replace(/\/[^/]*$/, '/');
+      return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+    })();
+
+    function buildUrl(endpoint) {
+      const relative = endpoint.replace(/^\//, '');
+      return `${basePath}${relative}`;
+    }
+
+    async function triggerAction(endpoint, pendingText) {
       statusEl.textContent = pendingText;
       try {
-        const response = await fetch(url, { method: 'POST' });
+        const response = await fetch(buildUrl(endpoint), { method: 'POST' });
         const contentType = response.headers.get('content-type') || '';
         const body = await response.text();
         let payload = null;
@@ -51,8 +63,8 @@
     }
 
     document.getElementById('trainBtn').onclick = () =>
-      triggerAction('/train', 'Training started...');
+      triggerAction('train', 'Training started...');
     document.getElementById('classifyBtn').onclick = () =>
-      triggerAction('/classify', 'Classification started...');
+      triggerAction('classify', 'Classification started...');
   </script>
 <%- include('partials/footer') %>

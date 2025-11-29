@@ -14,19 +14,45 @@
   </div>
   <script>
     const statusEl = document.getElementById('status');
-    document.getElementById('trainBtn').onclick = () => {
-      statusEl.textContent = 'Training started...';
-      fetch('/train', { method: 'POST' })
-        .then(r => r.json())
-        .then(j => statusEl.textContent = j.message || JSON.stringify(j))
-        .catch(e => statusEl.textContent = 'Error: ' + e);
-    };
-    document.getElementById('classifyBtn').onclick = () => {
-      statusEl.textContent = 'Classification started...';
-      fetch('/classify', { method: 'POST' })
-        .then(r => r.json())
-        .then(j => statusEl.textContent = j.message || JSON.stringify(j))
-        .catch(e => statusEl.textContent = 'Error: ' + e);
-    };
+
+    async function triggerAction(url, pendingText) {
+      statusEl.textContent = pendingText;
+      try {
+        const response = await fetch(url, { method: 'POST' });
+        const contentType = response.headers.get('content-type') || '';
+        const body = await response.text();
+        let payload = null;
+
+        if (body && contentType.includes('application/json')) {
+          try {
+            payload = JSON.parse(body);
+          } catch (parseErr) {
+            // Fall back to showing the raw body below.
+          }
+        }
+
+        if (!response.ok) {
+          const message =
+            (payload && (payload.message || payload.error)) ||
+            (body && body.trim()) ||
+            response.statusText ||
+            'Request failed';
+          throw new Error(message);
+        }
+
+        if (payload) {
+          statusEl.textContent = payload.message || JSON.stringify(payload);
+        } else {
+          statusEl.textContent = body || 'Done.';
+        }
+      } catch (err) {
+        statusEl.textContent = 'Error: ' + (err.message || err);
+      }
+    }
+
+    document.getElementById('trainBtn').onclick = () =>
+      triggerAction('/train', 'Training started...');
+    document.getElementById('classifyBtn').onclick = () =>
+      triggerAction('/classify', 'Classification started...');
   </script>
 <%- include('partials/footer') %>

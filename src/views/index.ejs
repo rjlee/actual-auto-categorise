@@ -27,6 +27,68 @@
       return `${basePath}${relative}`;
     }
 
+    let trainPollTimeout = null;
+
+    function stopTrainPolling() {
+      if (trainPollTimeout) {
+        clearTimeout(trainPollTimeout);
+        trainPollTimeout = null;
+      }
+    }
+
+    function renderTrainStatus(status) {
+      if (!status) return;
+      let text = status.message || `Training ${status.state}`;
+      if (status.startedAt && status.state === 'running') {
+        try {
+          const ts = new Date(status.startedAt);
+          text += ` (started ${ts.toLocaleTimeString()})`;
+        } catch (_) {
+          // ignore parsing issues
+        }
+      }
+      if (status.error) {
+        text += ` — ${status.error}`;
+      }
+      statusEl.textContent = text;
+    }
+
+    async function fetchTrainStatus() {
+      const res = await fetch(buildUrl('train/status'));
+      if (!res.ok) {
+        throw new Error('Failed to fetch training status');
+      }
+      return res.json();
+    }
+
+    async function refreshTrainStatus(scheduleNext = false) {
+      try {
+        const data = await fetchTrainStatus();
+        if (data?.status) {
+          renderTrainStatus(data.status);
+          if (scheduleNext && data.status.state === 'running') {
+            trainPollTimeout = setTimeout(() => refreshTrainStatus(true), 5000);
+            return;
+          }
+        }
+        if (!scheduleNext) {
+          return;
+        }
+        stopTrainPolling();
+      } catch (err) {
+        statusEl.textContent =
+          'Error fetching training status: ' + (err.message || err);
+        if (scheduleNext) {
+          trainPollTimeout = setTimeout(() => refreshTrainStatus(true), 5000);
+        }
+      }
+    }
+
+    function beginTrainMonitoring() {
+      stopTrainPolling();
+      refreshTrainStatus(true);
+    }
+
     async function triggerAction(endpoint, pendingText) {
       statusEl.textContent = pendingText;
       try {
@@ -52,7 +114,14 @@
           throw new Error(message);
         }
 
-        if (payload) {
+        if (endpoint === 'train' && payload?.status) {
+          renderTrainStatus(payload.status);
+          if (payload.status.state === 'running') {
+            beginTrainMonitoring();
+          } else {
+            stopTrainPolling();
+          }
+        } else if (payload) {
           statusEl.textContent = payload.message || JSON.stringify(payload);
         } else {
           statusEl.textContent = body || 'Done.';
@@ -66,5 +135,7 @@
       triggerAction('train', 'Training started...');
     document.getElementById('classifyBtn').onclick = () =>
       triggerAction('classify', 'Classification started...');
+
+    refreshTrainStatus(false);
   </script>
 <%- include('partials/footer') %>

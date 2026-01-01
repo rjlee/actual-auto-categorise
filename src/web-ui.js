@@ -44,23 +44,63 @@ function startWebUi(httpPort, verbose) {
 
   let trainLock = false;
   let classifyLock = false;
+  let trainStatus = {
+    state: 'idle',
+    message: 'Training idle',
+    startedAt: null,
+    finishedAt: null,
+    error: null,
+  };
+
+  const updateTrainStatus = (changes = {}) => {
+    trainStatus = {
+      ...trainStatus,
+      ...changes,
+    };
+  };
 
   app.get('/', (req, res) =>
     res.send(uiPageHtml({ showLogoutButton: hasAuthCookie(req) })),
   );
-  app.post('/train', async (_req, res) => {
+  app.get('/train/status', (_req, res) => res.json({ status: trainStatus }));
+
+  app.post('/train', (_req, res) => {
     if (trainLock) {
-      return res.status(409).json({ message: 'Training already in progress' });
+      return res
+        .status(409)
+        .json({ message: 'Training already in progress', status: trainStatus });
     }
     trainLock = true;
-    try {
-      await runTraining({ verbose, useLogger: true });
-      res.json({ message: 'Training complete' });
-    } catch (err) {
-      res.status(500).json({ message: 'Training failed', error: err.message });
-    } finally {
-      trainLock = false;
-    }
+    const startedAt = new Date().toISOString();
+    updateTrainStatus({
+      state: 'running',
+      message: 'Training in progress',
+      startedAt,
+      finishedAt: null,
+      error: null,
+    });
+    res.status(202).json({ message: 'Training started', status: trainStatus });
+    (async () => {
+      try {
+        await runTraining({ verbose, useLogger: true });
+        updateTrainStatus({
+          state: 'completed',
+          message: 'Training complete',
+          finishedAt: new Date().toISOString(),
+          error: null,
+        });
+      } catch (err) {
+        logger.error({ err }, 'Training failed');
+        updateTrainStatus({
+          state: 'failed',
+          message: 'Training failed',
+          finishedAt: new Date().toISOString(),
+          error: err.message,
+        });
+      } finally {
+        trainLock = false;
+      }
+    })();
   });
   app.post('/classify', async (_req, res) => {
     if (classifyLock) {

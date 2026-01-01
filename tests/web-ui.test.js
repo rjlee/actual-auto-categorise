@@ -117,7 +117,7 @@ describe('Web UI server', () => {
     expect(html).not.toMatch(/action="\/auth\/logout"/);
   });
 
-  test('POST /train runs training and returns success message', async () => {
+  test('POST /train triggers training asynchronously and returns acknowledgment', async () => {
     const res = createRes();
     await getHandler(app, 'post', '/train')(createReq(), res);
 
@@ -125,7 +125,45 @@ describe('Web UI server', () => {
       verbose: false,
       useLogger: true,
     });
-    expect(res.json).toHaveBeenCalledWith({ message: 'Training complete' });
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Training started',
+      status: expect.objectContaining({
+        state: 'running',
+        message: 'Training in progress',
+      }),
+    });
+  });
+
+  test('GET /train/status reflects running and completed states', async () => {
+    let resolveTraining;
+    runTraining.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveTraining = resolve;
+        }),
+    );
+
+    const handler = getHandler(app, 'post', '/train');
+    handler(createReq(), createRes());
+
+    const runningRes = createRes();
+    await getHandler(app, 'get', '/train/status')(createReq(), runningRes);
+    expect(runningRes.json).toHaveBeenCalledWith({
+      status: expect.objectContaining({ state: 'running' }),
+    });
+
+    resolveTraining();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const doneRes = createRes();
+    await getHandler(app, 'get', '/train/status')(createReq(), doneRes);
+    expect(doneRes.json).toHaveBeenCalledWith({
+      status: expect.objectContaining({
+        state: 'completed',
+        message: 'Training complete',
+      }),
+    });
   });
 
   test('POST /train responds 409 when training already running', async () => {
@@ -139,7 +177,7 @@ describe('Web UI server', () => {
 
     const handler = getHandler(app, 'post', '/train');
     const res1 = createRes();
-    const firstCall = handler(createReq(), res1);
+    handler(createReq(), res1);
 
     const res2 = createRes();
     await handler(createReq(), res2);
@@ -147,11 +185,16 @@ describe('Web UI server', () => {
     expect(res2.status).toHaveBeenCalledWith(409);
     expect(res2.json).toHaveBeenCalledWith({
       message: 'Training already in progress',
+      status: expect.objectContaining({ state: 'running' }),
     });
 
     resolveTraining();
-    await firstCall;
-    expect(res1.json).toHaveBeenCalledWith({ message: 'Training complete' });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(res1.status).toHaveBeenCalledWith(202);
+    expect(res1.json).toHaveBeenCalledWith({
+      message: 'Training started',
+      status: expect.objectContaining({ state: 'running' }),
+    });
   });
 
   test('POST /classify returns applied updates count', async () => {

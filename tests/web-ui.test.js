@@ -45,7 +45,29 @@ jest.mock('express', () => {
   return express;
 });
 
-jest.mock('../src/train', () => ({ runTraining: jest.fn(async () => {}) }));
+jest.mock('worker_threads', () => {
+  const { EventEmitter } = require('events');
+  const instances = [];
+  class FakeWorker extends EventEmitter {
+    constructor(filename, options) {
+      super();
+      this.filename = filename;
+      this.options = options;
+      instances.push(this);
+    }
+    terminate = jest.fn(() => Promise.resolve());
+    static __getInstances() {
+      return instances;
+    }
+    static __getLastInstance() {
+      return instances[instances.length - 1] || null;
+    }
+    static __reset() {
+      instances.length = 0;
+    }
+  }
+  return { Worker: FakeWorker };
+});
 jest.mock('../src/classifier', () => ({
   runClassification: jest.fn(async () => 0),
 }));
@@ -55,7 +77,7 @@ jest.mock('../src/utils', () => ({
 }));
 
 const express = require('express');
-const { runTraining } = require('../src/train');
+const { Worker } = require('worker_threads');
 const { runClassification } = require('../src/classifier');
 const { startWebUi } = require('../src/web-ui');
 
@@ -94,6 +116,7 @@ describe('Web UI server', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     express.__reset();
+    Worker.__reset();
     startWebUi(0, false);
     app = express.__getLastApp();
   });
@@ -121,7 +144,10 @@ describe('Web UI server', () => {
     const res = createRes();
     await getHandler(app, 'post', '/train')(createReq(), res);
 
-    expect(runTraining).toHaveBeenCalledWith({
+    const worker = Worker.__getLastInstance();
+    expect(worker).toBeTruthy();
+    expect(worker.filename).toMatch(/training-worker\.js$/);
+    expect(worker.options.workerData).toEqual({
       verbose: false,
       useLogger: true,
     });
@@ -136,14 +162,6 @@ describe('Web UI server', () => {
   });
 
   test('GET /train/status reflects running and completed states', async () => {
-    let resolveTraining;
-    runTraining.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveTraining = resolve;
-        }),
-    );
-
     const handler = getHandler(app, 'post', '/train');
     handler(createReq(), createRes());
 
@@ -153,7 +171,8 @@ describe('Web UI server', () => {
       status: expect.objectContaining({ state: 'running' }),
     });
 
-    resolveTraining();
+    const worker = Worker.__getLastInstance();
+    worker.emit('message', { status: 'success' });
     await new Promise((resolve) => setImmediate(resolve));
 
     const doneRes = createRes();
@@ -167,14 +186,6 @@ describe('Web UI server', () => {
   });
 
   test('POST /train responds 409 when training already running', async () => {
-    let resolveTraining;
-    runTraining.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveTraining = resolve;
-        }),
-    );
-
     const handler = getHandler(app, 'post', '/train');
     const res1 = createRes();
     handler(createReq(), res1);
@@ -188,7 +199,8 @@ describe('Web UI server', () => {
       status: expect.objectContaining({ state: 'running' }),
     });
 
-    resolveTraining();
+    const worker = Worker.__getLastInstance();
+    worker.emit('message', { status: 'success' });
     await new Promise((resolve) => setImmediate(resolve));
     expect(res1.status).toHaveBeenCalledWith(202);
     expect(res1.json).toHaveBeenCalledWith({

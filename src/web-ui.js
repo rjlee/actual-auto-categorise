@@ -7,9 +7,10 @@ const express = require('express');
 
 const logger = require('./logger');
 const { runClassification } = require('./classifier');
-const { runTraining } = require('./train');
+const { Worker } = require('worker_threads');
 
 const DEFAULT_COOKIE_NAME = 'actual-auth';
+const TRAIN_WORKER_PATH = path.join(__dirname, 'workers', 'training-worker.js');
 
 function hasAuthCookie(req) {
   const cookieName =
@@ -64,6 +65,56 @@ function startWebUi(httpPort, verbose) {
   );
   app.get('/train/status', (_req, res) => res.json({ status: trainStatus }));
 
+  const finishTrainStatus = (state, details = {}) => {
+    updateTrainStatus({
+      state,
+      finishedAt: new Date().toISOString(),
+      ...details,
+    });
+    trainLock = false;
+  };
+
+  const startTrainingWorker = () => {
+    const worker = new Worker(TRAIN_WORKER_PATH, {
+      workerData: { verbose, useLogger: true },
+    });
+    worker.on('message', (msg) => {
+      if (!msg || typeof msg !== 'object') return;
+      if (msg.status === 'success') {
+        finishTrainStatus('completed', {
+          message: 'Training complete',
+          error: null,
+        });
+      } else if (msg.status === 'error') {
+        finishTrainStatus('failed', {
+          message: 'Training failed',
+          error: msg.error || 'Unknown worker error',
+        });
+      }
+    });
+    worker.on('error', (err) => {
+      finishTrainStatus('failed', {
+        message: 'Training failed',
+        error: err?.message || 'Worker error',
+      });
+    });
+    worker.on('exit', (code) => {
+      if (trainStatus.state === 'running') {
+        if (code === 0) {
+          finishTrainStatus('completed', {
+            message: 'Training complete',
+            error: null,
+          });
+        } else {
+          finishTrainStatus('failed', {
+            message: 'Training failed',
+            error: `Worker exited with code ${code}`,
+          });
+        }
+      }
+    });
+  };
+
   app.post('/train', (_req, res) => {
     if (trainLock) {
       return res
@@ -80,27 +131,7 @@ function startWebUi(httpPort, verbose) {
       error: null,
     });
     res.status(202).json({ message: 'Training started', status: trainStatus });
-    (async () => {
-      try {
-        await runTraining({ verbose, useLogger: true });
-        updateTrainStatus({
-          state: 'completed',
-          message: 'Training complete',
-          finishedAt: new Date().toISOString(),
-          error: null,
-        });
-      } catch (err) {
-        logger.error({ err }, 'Training failed');
-        updateTrainStatus({
-          state: 'failed',
-          message: 'Training failed',
-          finishedAt: new Date().toISOString(),
-          error: err.message,
-        });
-      } finally {
-        trainLock = false;
-      }
-    })();
+    startTrainingWorker();
   });
   app.post('/classify', async (_req, res) => {
     if (classifyLock) {

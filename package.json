@@ -30,7 +30,7 @@
     "@tensorflow/tfjs-node-gpu": "^4.22.0",
     "@xenova/transformers": "^2.2.0",
     "cookie-session": "^2.0.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.2.4",
     "ejs": "^4.0.1",
     "ejs-lint": "^2.0.1",
     "express": "^5.2.1",

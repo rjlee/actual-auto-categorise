@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/rjlee/actual-auto-categorise/compare/v1.1.0...v1.1.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* fix lxc docker issue ([4d8a65e](https://github.com/rjlee/actual-auto-categorise/commit/4d8a65e95f6844dc1832411820f851c4f17f46bb))
+* preserve cause when re-throwing config parse error ([628eff0](https://github.com/rjlee/actual-auto-categorise/commit/628eff06a372022e0a872fae9b20e93e231aef4a))
+
 # [1.1.0](https://github.com/rjlee/actual-auto-categorise/compare/v1.0.0...v1.1.0) (2025-11-11)
 
 

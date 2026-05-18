@@ -24,6 +24,9 @@ RUN npm pkg delete scripts.prepare || true && \
     fi && \
     npm ci --omit=dev --no-audit --no-fund
 
+# Fix 1: normalize ownership to prevent LXC/containerd UID issues
+RUN chown -R root:root /app/node_modules || true
+
 # Copy application source
 COPY . .
 
